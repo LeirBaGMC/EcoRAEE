@@ -1,0 +1,13 @@
+# PROPUESTO (no se pudo instalar en el entorno donde se escribio: sin acceso a PyPI)
+fastapi>=0.115
+uvicorn>=0.30
+python-multipart>=0.0.9   # necesario para subir evidencias (POST /evidencias)
+sqlalchemy>=2.0
+pyodbc>=5.1
+python-dotenv>=1.0
+bcrypt>=4.1
+PyJWT>=2.8
+pydantic>=2
+pytest>=8
+httpx>=0.27
+# boto3>=1.34             # SOLO en la fase Cloud, cuando se autorice usar S3

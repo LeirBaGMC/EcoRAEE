@@ -1,0 +1,31 @@
+# Configuracion privada (conservar plantillas)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python
+.venv/
+.venv-windows/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend
+node_modules/
+dist/
+
+# Archivos locales y evidencias privadas
+almacen_evidencias/
+*.log
+npm-audit.json
+swagger-resultado.png
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.bak
+*.zip
