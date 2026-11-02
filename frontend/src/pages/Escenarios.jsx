@@ -9,7 +9,7 @@ export function Escenarios() {
   const [pagina, setPagina] = useState(1);
   const lista = useAsync(() => Api.listar(pagina, 20), [pagina]);
   return (
-    <Pagina titulo="Analisis de red" ayuda="Escenarios para calcular cuanto puede mover la red en un periodo y que conexiones lo limitan. Es un analisis: no crea ni autoriza movimientos."
+    <Pagina titulo="Análisis de red" ayuda="Escenarios para calcular cuanto puede mover la red en un periodo y que conexiones lo limitan. Es un análisis: no crea ni autoriza movimientos."
       acciones={<a className="btn btn-pri" href="#/escenarios/nuevo">Nuevo escenario</a>}>
       <Seccion titulo="Escenarios">
         <Carga estado={lista} vacio="Todavia no hay escenarios.">{(d) => (<>
@@ -91,21 +91,21 @@ function Resultado({ esc, centros, r }) {
   return (
     <div>
       <Alerta tipo="info" titulo="Simulacion">Este resultado es un calculo sobre los datos guardados del escenario. No crea ni autoriza movimientos.</Alerta>
-      <Datos pares={[['Flujo maximo', `${num(r.flujo_maximo)} ${esc.unidad_flujo}`], ...(r.capacidad_corte != null ? [['Capacidad del corte minimo', `${num(r.capacidad_corte)} ${esc.unidad_flujo}`]] : []),
+      <Datos pares={[['Flujo máximo', `${num(r.flujo_maximo)} ${esc.unidad_flujo}`], ...(r.capacidad_corte != null ? [['Capacidad del corte mínimo', `${num(r.capacidad_corte)} ${esc.unidad_flujo}`]] : []),
         ['Periodo', `${fecha(esc.fecha_inicio_periodo)} a ${fecha(esc.fecha_fin_periodo)}`], ['Algoritmo', texto(r.algoritmo)], ...(r.huella_datos ? [['Huella de los datos', <code key="h" style={{ wordBreak: 'break-all' }}>{r.huella_datos}</code>]] : [])]} />
       {r.interpretacion && <p className="ayuda">{r.interpretacion}</p>}
       <h3 style={{ marginTop: '1rem' }}>Grafo</h3>
       <Grafo nodos={esc.nodos} aristas={aristas} nombre={nombre} />
-      <p className="nota">Circulo F: fuente. Cuadrado S: sumidero. Circulo I: intermedio. Cada flecha muestra flujo/capacidad. Punteada y con la palabra corte: pertenece al corte minimo.</p>
+      <p className="nota">Circulo F: fuente. Cuadrado S: sumidero. Circulo I: intermedio. Cada flecha muestra flujo/capacidad. Punteada y con la palabra corte: pertenece al corte mínimo.</p>
       <h3>Tabla de conexiones</h3>
-      <Tabla titulo="Resultado por conexion" clave="id_conexion" filas={filas} columnas={[
-        { titulo: 'Conexion', ver: (x) => `${nombre(x.origen)} a ${nombre(x.destino)}` },
+      <Tabla titulo="Resultado por conexión" clave="id_conexion" filas={filas} columnas={[
+        { titulo: 'Conexión', ver: (x) => `${nombre(x.origen)} a ${nombre(x.destino)}` },
         { titulo: 'Capacidad considerada', num: true, ver: (x) => num(x.capacidad_considerada) },
         { titulo: 'Flujo asignado', num: true, ver: (x) => num(x.flujo_asignado) },
         { titulo: 'Saturada', ver: (x) => (x.saturada ? 'Si (usa toda su capacidad)' : 'No') },
-        { titulo: 'En el corte minimo', ver: (x) => (x.en_corte_minimo ? 'Si' : 'No') },
+        { titulo: 'En el corte mínimo', ver: (x) => (x.en_corte_minimo ? 'Si' : 'No') },
       ]} />
-      <p className="nota">Una conexion saturada no siempre pertenece al corte minimo: por eso son dos columnas distintas.</p>
+      <p className="nota">Una conexión saturada no siempre pertenece al corte mínimo: por eso son dos columnas distintas.</p>
       {(r.ofertas_limitantes?.length > 0 || r.demandas_limitantes?.length > 0) && (
         <p className="nota">{r.ofertas_limitantes?.length ? `Ofertas que limitan: ${r.ofertas_limitantes.map(nombre).join(', ')}. ` : ''}{r.demandas_limitantes?.length ? `Demandas que limitan: ${r.demandas_limitantes.map(nombre).join(', ')}.` : ''}</p>
       )}
@@ -131,7 +131,7 @@ export function EscenarioDetalle({ params }) {
           <Datos pares={[['Estado', <Estado key="s" valor={e.estado_escenario} />], ['Unidad', e.unidad_flujo], ['Periodo', `${fecha(e.fecha_inicio_periodo)} a ${fecha(e.fecha_fin_periodo)}`], ['Centros', e.nodos.length], ['Conexiones', e.conexiones.length]]} />
           <ErrorApi error={estado.error} ayuda={{ 409: 'Un escenario archivado no cambia de estado.' }} />
         </Seccion>
-        <Seccion titulo="Calcular flujo maximo y corte minimo">
+        <Seccion titulo="Calcular flujo máximo y corte mínimo">
           <div className="acciones">
             <Select label="Algoritmo" value={algoritmo} onChange={(ev) => setAlgoritmo(ev.target.value)} vacio="Selecciona..." opciones={[{ valor: 'EDMONDS_KARP', texto: 'Edmonds-Karp' }, { valor: 'FORD_FULKERSON', texto: 'Ford-Fulkerson' }]} />
             <Boton enviando={calcular.enviando} onClick={() => calcular.ejecutar()}>Calcular</Boton>
@@ -140,10 +140,10 @@ export function EscenarioDetalle({ params }) {
           <Carga estado={centros}>{(cs) => (resultado ? <Resultado esc={e} centros={cs} r={resultado} /> : <p className="nota">Todavia no hay un resultado en pantalla. Calcula o abre una ejecucion anterior.</p>)}</Carga>
         </Seccion>
         <Seccion titulo="Ejecuciones anteriores">
-          <Carga estado={hist} vacio="Aun no se ha calculado este escenario.">{(h) => (
+          <Carga estado={hist} vacio="Aún no se ha calculado este escenario.">{(h) => (
             <Tabla titulo="Ejecuciones" clave="id_ejecucion" filas={h} columnas={[
               { titulo: 'Ejecucion', ver: (x) => `#${x.id_ejecucion}` }, { titulo: 'Fecha', ver: (x) => fechaHora(x.fecha_hora_ejecucion) },
-              { titulo: 'Algoritmo', ver: (x) => texto(x.algoritmo) }, { titulo: 'Flujo maximo', num: true, ver: (x) => num(x.flujo_maximo) }, { titulo: 'Estado', ver: (x) => <Estado valor={x.estado_ejecucion} /> },
+              { titulo: 'Algoritmo', ver: (x) => texto(x.algoritmo) }, { titulo: 'Flujo máximo', num: true, ver: (x) => num(x.flujo_maximo) }, { titulo: 'Estado', ver: (x) => <Estado valor={x.estado_ejecucion} /> },
               { titulo: 'Ver', ver: (x) => <button type="button" className="btn btn-sec btn-chico" onClick={() => ver.ejecutar(x.id_ejecucion)}>Abrir</button> },
             ]} />
           )}</Carga>

@@ -22,10 +22,10 @@ export function Movimientos() {
         <Select label="Filtrar por estado" value={estado} vacio="Todos" onChange={(e) => { setEstado(e.target.value); setPagina(1); }} opciones={ESTADOS.map((x) => ({ valor: x, texto: texto(x) }))} />
         <Carga estado={lista} vacio="No hay movimientos.">{(d) => (<>
           <Tabla titulo="Movimientos" clave="id_movimiento" filas={d.items} columnas={[
-            { titulo: 'Codigo', ver: (f) => <a href={`#/movimientos/${f.id_movimiento}`}>{f.codigo_movimiento}</a> },
+            { titulo: 'Código', ver: (f) => <a href={`#/movimientos/${f.id_movimiento}`}>{f.codigo_movimiento}</a> },
             { titulo: 'Tipo', ver: (f) => texto(f.tipo_movimiento) },
             { titulo: 'Estado', ver: (f) => <Estado valor={f.estado_movimiento} /> },
-            { titulo: 'Conexion', ver: (f) => `#${f.id_conexion}` },
+            { titulo: 'Conexión', ver: (f) => `#${f.id_conexion}` },
             { titulo: 'Despacho planificado', ver: (f) => fecha(f.fecha_despacho) },
             { titulo: 'Cantidad', num: true, ver: (f) => (f.cantidad != null ? `${num(f.cantidad)} ${f.unidad || ''}` : '-') },
           ]} />
@@ -61,7 +61,7 @@ export function MovimientoNuevo() {
   };
 
   return (
-    <Pagina titulo="Programar movimiento" ayuda="Elige la conexion y los dispositivos. El sistema reserva capacidad del periodo al programar."
+    <Pagina titulo="Programar movimiento" ayuda="Elige la conexión y los dispositivos. El sistema reserva capacidad del periodo al programar."
       acciones={<a className="btn btn-sec" href="#/movimientos">Volver</a>}>
       {hecho && (
         <Alerta tipo="exito" titulo={hecho.repetido ? 'Ya estaba registrado' : 'Movimiento programado'} accion={<p><a href={`#/movimientos/${hecho.id_movimiento}`}>Abrir {hecho.codigo_movimiento}</a></p>}>
@@ -77,7 +77,7 @@ export function MovimientoNuevo() {
           <form onSubmit={(e) => enviar(e, con)} noValidate>
             <Seccion titulo="Ruta y fecha">
               <div className="form-rejilla">
-                <Select label="Conexion (origen a destino)" requerido value={f.v.id_conexion} onChange={(e) => { f.set('id_conexion', e.target.value); setElegidos({}); }}
+                <Select label="Conexión (origen a destino)" requerido value={f.v.id_conexion} onChange={(e) => { f.set('id_conexion', e.target.value); setElegidos({}); }}
                   opciones={b.con.map((c) => ({ valor: c.id_conexion, texto: `${nombre(c.id_centro_origen)} a ${nombre(c.id_centro_destino)} - ${num(c.capacidad_por_periodo)} ${c.unidad_capacidad} por periodo` }))} errorApi={acc.error} name="id_conexion" />
                 <Select label="Tipo de movimiento" requerido vacio="Selecciona..." opciones={TIPOS} {...f.enlazar('tipo_movimiento')} errorApi={acc.error} />
                 <Input label="Fecha planificada de despacho" type="date" min={hoyISO()} requerido {...f.enlazar('fecha_despacho')} errorApi={acc.error} ayuda="La capacidad se mide por mes calendario de esta fecha (propuesta pendiente de validar)." />
@@ -85,7 +85,7 @@ export function MovimientoNuevo() {
               {con && <p className="nota">La capacidad de esta conexion se mide en {con.unidad_capacidad === 'KG' ? 'kilogramos (usa el peso de cada dispositivo)' : 'unidades (1 por dispositivo)'}.</p>}
             </Seccion>
             <Seccion titulo={`Dispositivos en el centro de origen (${Object.keys(elegidos).length} elegido(s))`} ayuda="Solo se muestran equipos evaluados o reacondicionados que estan en el centro de origen.">
-              {!con ? <p className="nota">Elige primero la conexion.</p> : enOrigen.length === 0 ? <Alerta tipo="aviso">No hay dispositivos movibles en {nombre(con.id_centro_origen)}.</Alerta> : (
+              {!con ? <p className="nota">Elige primero la conexión.</p> : enOrigen.length === 0 ? <Alerta tipo="aviso">No hay dispositivos movibles en {nombre(con.id_centro_origen)}.</Alerta> : (
                 <div className="lista-check">
                   {enOrigen.map((d) => (
                     <div key={d.id_dispositivo} className="acciones">
@@ -98,7 +98,7 @@ export function MovimientoNuevo() {
                 </div>
               )}
             </Seccion>
-            <ErrorApi error={acc.error} ayuda={{ 409: 'Alguno de los dispositivos ya esta en otro movimiento activo, o la clave de reintento se uso con datos distintos. Actualiza y revisa.', 422: 'Una regla no se cumplio: capacidad del periodo, fecha pasada, centro de destino o clasificacion.' }} />
+            <ErrorApi error={acc.error} ayuda={{ 409: 'Alguno de los dispositivos ya esta en otro movimiento activo, o la clave de reintento se uso con datos distintos. Actualiza y revisa.', 422: 'Una regla no se cumplio: capacidad del periodo, fecha pasada, centro de destino o clasificación.' }} />
             <Boton type="submit" enviando={acc.enviando} disabled={!con || Object.keys(elegidos).length === 0 || !f.v.fecha_despacho}>Programar movimiento</Boton>
           </form>
         );
@@ -117,7 +117,7 @@ function Paso({ texto: t, tipo = 'primario', pedirConfirmacion, onHacer }) {
         : (<div className="acciones"><span>Seguro que quieres continuar?</span>
           <Boton tipo="peligro" enviando={acc.enviando} onClick={async () => { await acc.ejecutar(); setSeguro(false); }}>Si, {t.toLowerCase()}</Boton>
           <Boton tipo="secundario" onClick={() => setSeguro(false)}>No</Boton></div>)}
-      <ErrorApi error={acc.error} ayuda={{ 409: 'El movimiento cambio de estado. Actualiza la pantalla.', 422: 'El proceso no permite esta accion ahora.' }} />
+      <ErrorApi error={acc.error} ayuda={{ 409: 'El movimiento cambio de estado. Actualiza la pantalla.', 422: 'El proceso no permite esta acción ahora.' }} />
     </div>
   );
 }
@@ -139,7 +139,7 @@ export function MovimientoDetalle({ params }) {
           <Seccion titulo="Resumen">
             <Datos pares={[
               ['Estado', <Estado key="e" valor={e} />], ['Tipo', texto(m.tipo_movimiento)], ['Origen (centro)', m.id_centro_origen], ['Destino (centro)', m.id_centro_destino],
-              ['Responsable (usuario)', m.id_responsable], ['Despacho planificado', fecha(m.fecha_despacho)], ['Recepcion', fechaHora(m.fecha_recepcion)],
+              ['Responsable (usuario)', m.id_responsable], ['Despacho planificado', fecha(m.fecha_despacho)], ['Recepción', fechaHora(m.fecha_recepcion)],
               ['Cantidad', m.cantidad != null ? `${num(m.cantidad)} ${m.unidad || ''}` : '-'],
             ]} />
           </Seccion>
@@ -158,7 +158,7 @@ export function MovimientoDetalle({ params }) {
               {e === 'EN_TRANSITO' && esC && <Paso texto="Cerrar movimiento" onHacer={cerrar} />}
             </div>
             {['CERRADO', 'ANULADO'].includes(e) && <p className="nota">Este movimiento ya termino.</p>}
-            {e === 'EN_TRANSITO' && <Alerta tipo="info">Para cerrar hace falta la guia de traslado (abajo). El cierre mueve el inventario del origen al destino en una sola operacion.</Alerta>}
+            {e === 'EN_TRANSITO' && <Alerta tipo="info">Para cerrar hace falta la guia de traslado (abajo). El cierre mueve el inventario del origen al destino en una sola operación.</Alerta>}
           </Seccion>
           {tiene(usuario, R_.O, R_.T, R_.C) && ['AUTORIZADO', 'EN_TRANSITO'].includes(e) && (
             <Seccion titulo="Subir guia de traslado"><SubirEvidencia destino={{ id_movimiento: id }} tipos={['GUIA_TRASLADO']} alSubir={() => setVersion((x) => x + 1)} /></Seccion>

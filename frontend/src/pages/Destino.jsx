@@ -6,7 +6,7 @@ import { fecha, fechaHora, hoyISO, texto } from '../lib/format.js';
 import { R_, tiene } from '../lib/permisos.js';
 import { Alerta, Boton, Carga, Datos, ErrorApi, Estado, Input, Paginacion, Pagina, Select, Seccion, Tabla } from '../components/ui.jsx';
 
-const TRATAMIENTOS = [['REACONDICIONAMIENTO', 'Reacondicionamiento (equipos reutilizables o reparables)'], ['RECICLAJE', 'Reciclaje (reciclables o no recuperables)'], ['DISPOSICION_CONTROLADA', 'Disposicion controlada (solo no recuperables)']].map(([valor, t]) => ({ valor, texto: t }));
+const TRATAMIENTOS = [['REACONDICIONAMIENTO', 'Reacondicionamiento (equipos reutilizables o reparables)'], ['RECICLAJE', 'Reciclaje (reciclables o no recuperables)'], ['DISPOSICION_CONTROLADA', 'Disposición controlada (solo no recuperables)']].map(([valor, t]) => ({ valor, texto: t }));
 
 async function dispositivosEn(estados) {
   const r = await Promise.all(estados.map((e) => Dispositivos.listar(1, 100, e)));
@@ -51,14 +51,14 @@ export function Tratamientos() {
               <Select label="Dispositivo" requerido opciones={lista.map((d) => ({ valor: d.id_dispositivo, texto: `${d.codigo_trazabilidad} - ${texto(d.estado_actual)}` }))} {...f.enlazar('id_dispositivo')} errorApi={ini.error} />
               <Select label="Tipo de tratamiento" requerido opciones={TRATAMIENTOS} {...f.enlazar('tipo_tratamiento')} errorApi={ini.error} />
             </div>
-            <ErrorApi error={ini.error} ayuda={{ 422: 'El tipo de tratamiento no corresponde a la clasificacion tecnica del equipo.' }} />
+            <ErrorApi error={ini.error} ayuda={{ 422: 'El tipo de tratamiento no corresponde a la clasificación técnica del equipo.' }} />
             <Boton type="submit" enviando={ini.enviando} disabled={!f.v.id_dispositivo || !f.v.tipo_tratamiento}>Iniciar tratamiento</Boton>
           </form>
         )}</Carga>
       </Seccion>
-      <Seccion titulo="Consultar o finalizar por numero" ayuda="El sistema aun no lista tratamientos: usa el numero que recibiste al iniciarlo.">
+      <Seccion titulo="Consultar o finalizar por número" ayuda="El sistema aún no lista tratamientos: usa el número que recibiste al iniciarlo.">
         <div className="acciones">
-          <Input label="Numero de tratamiento" type="number" min="1" value={numero} onChange={(e) => setNumero(e.target.value)} />
+          <Input label="Número de tratamiento" type="number" min="1" value={numero} onChange={(e) => setNumero(e.target.value)} />
           <Boton tipo="secundario" enviando={buscar.enviando} disabled={!numero} onClick={() => buscar.ejecutar(numero)}>Consultar</Boton>
         </div>
         <ErrorApi error={buscar.error} />
@@ -81,7 +81,7 @@ function NuevaAsignacion({ alCrear }) {
     if (r) { f.reiniciar(); base.recargar(); alCrear(); }
   };
   return (
-    <Seccion titulo="Nueva asignacion" ayuda="Un equipo clasificado como no recuperable no se puede asignar: el sistema lo rechaza.">
+    <Seccion titulo="Nueva asignación" ayuda="Un equipo clasificado como no recuperable no se puede asignar: el sistema lo rechaza.">
       <Carga estado={base}>{(b) => (
         <form onSubmit={enviar} noValidate>
           <div className="form-rejilla">
@@ -89,9 +89,9 @@ function NuevaAsignacion({ alCrear }) {
             <Select label="Entidad beneficiaria" requerido opciones={b.o.map((x) => ({ valor: x.id_organizacion, texto: x.nombre }))} {...f.enlazar('id_organizacion_beneficiaria')} errorApi={acc.error} />
             <Input label="Finalidad" requerido {...f.enlazar('finalidad')} errorApi={acc.error} />
           </div>
-          <ErrorApi error={acc.error} ayuda={{ 422: 'Revisa la clasificacion del equipo y su estado.', 409: 'Este dispositivo ya tiene una asignacion.' }} />
+          <ErrorApi error={acc.error} ayuda={{ 422: 'Revisa la clasificación del equipo y su estado.', 409: 'Este dispositivo ya tiene una asignación.' }} />
           {acc.ok && !acc.error && <Alerta tipo="exito">Asignacion #{acc.ok.id_asignacion} creada. Falta que la entidad confirme la entrega.</Alerta>}
-          <Boton type="submit" enviando={acc.enviando} disabled={!f.v.id_dispositivo || !f.v.id_organizacion_beneficiaria || !f.v.finalidad.trim()}>Crear asignacion</Boton>
+          <Boton type="submit" enviando={acc.enviando} disabled={!f.v.id_dispositivo || !f.v.id_organizacion_beneficiaria || !f.v.finalidad.trim()}>Crear asignación</Boton>
         </form>
       )}</Carga>
     </Seccion>
@@ -109,17 +109,17 @@ export function Asignaciones() {
   const lista = useAsync(() => Ciclo.asignaciones(pagina, 20), [pagina]);
   const esBenef = tiene(usuario, R_.B);
   return (
-    <Pagina titulo="Asignaciones" ayuda={esBenef ? 'Equipos asignados a tu organizacion. Confirma cuando los recibas.' : 'Entrega de equipos a entidades beneficiarias.'}>
+    <Pagina titulo="Asignaciones" ayuda={esBenef ? 'Equipos asignados a tu organización. Confirma cuando los recibas.' : 'Entrega de equipos a entidades beneficiarias.'}>
       {tiene(usuario, R_.C) && <NuevaAsignacion alCrear={lista.recargar} />}
       <Seccion titulo="Listado">
         <Carga estado={lista} vacio="No hay asignaciones.">{(d) => (<>
           <Tabla titulo="Asignaciones" clave="id_asignacion" filas={d.items} columnas={[
-            { titulo: 'Asignacion', ver: (f) => `#${f.id_asignacion}` },
+            { titulo: 'Asignación', ver: (f) => `#${f.id_asignacion}` },
             { titulo: 'Dispositivo', ver: (f) => <a href={`#/dispositivos/${f.id_dispositivo}`}>#{f.id_dispositivo}</a> },
             { titulo: 'Finalidad', ver: (f) => f.finalidad || '-' },
             { titulo: 'Asignada', ver: (f) => fecha(f.fecha_asignacion) },
             { titulo: 'Entrega', ver: (f) => (f.entregada ? <span><Estado valor="ENTREGADA" /> {fecha(f.fecha_entrega)}</span> : <Estado valor="PENDIENTE" />) },
-            ...(esBenef ? [{ titulo: 'Accion', ver: (f) => (f.entregada ? '-' : <Confirmar id={f.id_asignacion} alCambiar={lista.recargar} />) }] : []),
+            ...(esBenef ? [{ titulo: 'Acción', ver: (f) => (f.entregada ? '-' : <Confirmar id={f.id_asignacion} alCambiar={lista.recargar} />) }] : []),
           ]} />
           <Paginacion pagina={d.pagina} tamano={d.tamano} total={d.total} onCambiar={setPagina} />
         </>)}</Carga>
@@ -139,13 +139,13 @@ export function Cierres() {
     if (r) f.set('id_destino', '');
   };
   return (
-    <Pagina titulo="Cierre de trazabilidad" ayuda="Cierra el ciclo de un equipo con un unico destino final y la fecha en que se confirmo. No se puede deshacer.">
+    <Pagina titulo="Cierre de trazabilidad" ayuda="Cierra el ciclo de un equipo con un único destino final y la fecha en que se confirmo. No se puede deshacer.">
       <Seccion titulo="Datos del cierre">
         <form onSubmit={enviar} noValidate>
           <div className="form-rejilla">
-            <Input label="Numero de dispositivo" type="number" min="1" requerido {...f.enlazar('id_dispositivo')} errorApi={acc.error} />
-            <Select label="Destino final" requerido vacio="Selecciona..." opciones={[{ valor: 'tratamiento', texto: 'Tratamiento finalizado' }, { valor: 'asignacion', texto: 'Asignacion a beneficiario entregada' }]} {...f.enlazar('destino')} />
-            <Input label={f.v.destino === 'tratamiento' ? 'Numero de tratamiento' : 'Numero de asignacion'} type="number" min="1" requerido {...f.enlazar('id_destino')} errorApi={acc.error} />
+            <Input label="Número de dispositivo" type="number" min="1" requerido {...f.enlazar('id_dispositivo')} errorApi={acc.error} />
+            <Select label="Destino final" requerido vacio="Selecciona..." opciones={[{ valor: 'tratamiento', texto: 'Tratamiento finalizado' }, { valor: 'asignacion', texto: 'Asignación a beneficiario entregada' }]} {...f.enlazar('destino')} />
+            <Input label={f.v.destino === 'tratamiento' ? 'Número de tratamiento' : 'Número de asignación'} type="number" min="1" requerido {...f.enlazar('id_destino')} errorApi={acc.error} />
             <Input label="Fecha de confirmacion" type="date" max={hoyISO()} requerido {...f.enlazar('fecha_confirmacion')} errorApi={acc.error} ayuda="No puede ser futura." />
           </div>
           <ErrorApi error={acc.error} ayuda={{ 409: 'Este dispositivo ya tiene un cierre.', 422: 'El tratamiento debe estar finalizado o la entrega confirmada antes de cerrar.' }} />

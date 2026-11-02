@@ -19,9 +19,9 @@ export default function Recepciones() {
     if (r) { setHecho(r); f.reiniciar(); sol.recargar(); }
   };
   return (
-    <Pagina titulo="Recepcion en centro" ayuda="Registra lo que llego a tu centro. Cada solicitud se recibe una sola vez.">
-      {hecho && <Alerta tipo="exito" titulo="Recepcion registrada">Recepcion #{hecho.id_recepcion}: {hecho.dispositivos_recibidos} dispositivo(s) recibido(s), {hecho.conforme ? 'conforme' : 'no conforme (se genero una alerta)'}.</Alerta>}
-      <Seccion titulo="Datos de la recepcion">
+    <Pagina titulo="Recepción en centro" ayuda="Registra lo que llego a tu centro. Cada solicitud se recibe una sola vez.">
+      {hecho && <Alerta tipo="exito" titulo="Recepción registrada">Recepcion #{hecho.id_recepcion}: {hecho.dispositivos_recibidos} dispositivo(s) recibido(s), {hecho.conforme ? 'conforme' : 'no conforme (se genero una alerta)'}.</Alerta>}
+      <Seccion titulo="Datos de la recepción">
         <Carga estado={sol}>{(lista) => (
           <Carga estado={centros}>{(cs) => (
             <form onSubmit={enviar} noValidate>
@@ -33,7 +33,7 @@ export default function Recepciones() {
               </div>
               <Casilla label="Todo llego conforme" checked={f.v.conforme} onChange={(e) => f.set('conforme', e.target.checked)} />
               <ErrorApi error={acc.error} ayuda={{ 409: 'Esta solicitud ya fue recibida o cambio de estado.' }} />
-              <Boton type="submit" enviando={acc.enviando} disabled={!f.v.id_solicitud || !f.v.id_centro || f.v.peso_recibido_kg === '' || f.v.unidades_recibidas === ''}>Registrar recepcion</Boton>
+              <Boton type="submit" enviando={acc.enviando} disabled={!f.v.id_solicitud || !f.v.id_centro || f.v.peso_recibido_kg === '' || f.v.unidades_recibidas === ''}>Registrar recepción</Boton>
             </form>
           )}</Carga>
         )}</Carga>

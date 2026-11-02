@@ -7,7 +7,7 @@ import { R_, tiene } from '../lib/permisos.js';
 import { Alerta, Boton, ErrorApi, Input, Pagina, Select, Seccion, Tabla } from '../components/ui.jsx';
 
 export const TIPOS_EVIDENCIA = ['FOTO_REGISTRO', 'ACTA_RECEPCION', 'INFORME_EVALUACION', 'GUIA_TRASLADO', 'CERTIFICADO_TRATAMIENTO', 'ACTA_ENTREGA'];
-const PROPOSITOS = [['AUDITORIA', 'Auditoria'], ['VERIFICACION_CIERRE', 'Verificacion de cierre'], ['EVALUACION', 'Evaluacion']].map(([valor, t]) => ({ valor, texto: t }));
+const PROPOSITOS = [['AUDITORIA', 'Auditoría'], ['VERIFICACION_CIERRE', 'Verificación de cierre'], ['EVALUACION', 'Evaluación']].map(([valor, t]) => ({ valor, texto: t }));
 const MAX_MB = 10;
 
 // destino: objeto con EXACTAMENTE una entidad, p. ej. {id_movimiento: 5}
@@ -41,7 +41,7 @@ export function SubirEvidencia({ destino, tipos = TIPOS_EVIDENCIA, tipoInicial, 
           <input id="archivo-ev" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" ref={archivoRef} aria-invalid={errorLocal ? true : undefined} aria-describedby={errorLocal ? 'archivo-ev-er' : undefined} />
           {errorLocal && <small id="archivo-ev-er" className="msg-error">{errorLocal}</small>}
         </div>
-        <Input label="Descripcion (opcional)" {...f.enlazar('descripcion')} errorApi={acc.error} />
+        <Input label="Descripción (opcional)" {...f.enlazar('descripcion')} errorApi={acc.error} />
       </div>
       {progreso !== null && <p><label htmlFor="prog-ev">Subiendo {progreso}%</label> <progress id="prog-ev" className="progreso" value={progreso} max="100" /></p>}
       <ErrorApi error={acc.error} ayuda={{ 422: 'Revisa que el archivo sea realmente PDF, JPG o PNG y que el tipo corresponda a lo que respalda.', 0: 'La carga no termino: reintenta.' }} />
@@ -65,15 +65,15 @@ export function ListaEvidencias({ destino, propositoInicial = 'AUDITORIA', refre
   return (
     <div>
       <div className="acciones">
-        <Select label="Proposito de la consulta" value={proposito} onChange={(e) => setProposito(e.target.value)} vacio="Selecciona..." opciones={PROPOSITOS} />
+        <Select label="Propósito de la consulta" value={proposito} onChange={(e) => setProposito(e.target.value)} vacio="Selecciona..." opciones={PROPOSITOS} />
         <Boton tipo="secundario" enviando={listar.enviando} onClick={() => listar.ejecutar()} data-refresco={refresco}>Consultar evidencias</Boton>
       </div>
-      <p className="nota">Cada consulta y descarga queda registrada con su proposito.</p>
-      <ErrorApi error={listar.error || abrir.error} ayuda={{ 403: 'Tu rol o el proposito elegido no permiten ver evidencias.' }} />
+      <p className="nota">Cada consulta y descarga queda registrada con su propósito.</p>
+      <ErrorApi error={listar.error || abrir.error} ayuda={{ 403: 'Tu rol o el propósito elegido no permiten ver evidencias.' }} />
       {filas && <Tabla titulo="Evidencias" clave="id_evidencia" filas={filas} vacio="No hay evidencias para este registro." columnas={[
-        { titulo: 'Numero', ver: (f) => `#${f.id_evidencia}` },
+        { titulo: 'Número', ver: (f) => `#${f.id_evidencia}` },
         { titulo: 'Tipo', ver: (f) => texto(f.tipo_evidencia) },
-        { titulo: 'Descripcion', ver: (f) => f.descripcion || '-' },
+        { titulo: 'Descripción', ver: (f) => f.descripcion || '-' },
         { titulo: 'Fecha', ver: (f) => fechaHora(f.fecha_carga) },
         { titulo: 'Archivo', ver: (f) => <button type="button" className="btn btn-sec btn-chico" disabled={abrir.enviando} onClick={() => abrir.ejecutar(f.id_evidencia)}>Abrir</button> },
       ]} />}
@@ -82,10 +82,10 @@ export function ListaEvidencias({ destino, propositoInicial = 'AUDITORIA', refre
 }
 
 const DESTINOS = [
-  { valor: 'id_recepcion', texto: 'Recepcion', campos: [['id_recepcion', 'Numero de recepcion']] },
-  { valor: 'id_movimiento', texto: 'Movimiento', campos: [['id_movimiento', 'Numero de movimiento']] },
-  { valor: 'id_cierre', texto: 'Cierre de trazabilidad', campos: [['id_cierre', 'Numero de cierre']] },
-  { valor: 'evaluacion', texto: 'Evaluacion tecnica', campos: [['id_dispositivo_evaluacion', 'Numero de dispositivo'], ['nro_evaluacion', 'Numero de evaluacion']] },
+  { valor: 'id_recepcion', texto: 'Recepción', campos: [['id_recepcion', 'Número de recepción']] },
+  { valor: 'id_movimiento', texto: 'Movimiento', campos: [['id_movimiento', 'Número de movimiento']] },
+  { valor: 'id_cierre', texto: 'Cierre de trazabilidad', campos: [['id_cierre', 'Número de cierre']] },
+  { valor: 'evaluacion', texto: 'Evaluación técnica', campos: [['id_dispositivo_evaluacion', 'Número de dispositivo'], ['nro_evaluacion', 'Número de evaluación']] },
 ];
 
 export default function Evidencias({ query }) {

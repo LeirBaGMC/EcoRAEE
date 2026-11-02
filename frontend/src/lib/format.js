@@ -1,3 +1,5 @@
+import { conTildes } from './acentos.js';
+
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 export function fecha(v) {
@@ -27,7 +29,7 @@ export function num(v) {
 }
 
 export function texto(v) {
-  return String(v ?? '').replaceAll('_', ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase());
+  return conTildes(String(v ?? '').replaceAll('_', ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase()));
 }
 
 export function uuid() {

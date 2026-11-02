@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from './auth/AuthContext.jsx';
 import { MENU, ROLES, puedeVer } from './lib/permisos.js';
-import { coincide, useRuta } from './lib/router.jsx';
+import { coincide, ir, useRuta } from './lib/router.jsx';
+import Landing from './landing/Landing.jsx';
 import { Alerta, Cargando } from './components/ui.jsx';
-import Login from './pages/Login.jsx';
+import Login, { Registro } from './pages/Login.jsx';
 import Inicio from './pages/Inicio.jsx';
 import Icono from './components/Icono.jsx';
+import MenuPerfil from './components/MenuPerfil.jsx';
+import { Leaf, Menu } from 'lucide-react';
 import { DispositivoDetalle, DispositivoNuevo, Dispositivos } from './pages/Dispositivos.jsx';
 import Solicitudes from './pages/Solicitudes.jsx';
 import Recepciones from './pages/Recepciones.jsx';
@@ -41,27 +44,35 @@ function elegir(path) {
 export default function App() {
   const { usuario, cargando, salir } = useAuth();
   const { path, query } = useRuta();
+
   const [menuAbierto, setMenuAbierto] = useState(false);
-
   useEffect(() => { setMenuAbierto(false); document.getElementById('titulo-pagina')?.focus(); }, [path]);
+  useEffect(() => {
+    if (!menuAbierto) return undefined;
+    const tecla = (e) => { if (e.key === 'Escape') setMenuAbierto(false); };
+    document.addEventListener('keydown', tecla);
+    return () => document.removeEventListener('keydown', tecla);
+  }, [menuAbierto]);
 
-  if (cargando) return <div className="login"><Cargando texto="Verificando tu sesion" /></div>;
-  if (!usuario) return <Login />;
+  if (cargando) return <div className="carga-inicial"><Cargando texto="Verificando tu sesión" /></div>;
+  if (!usuario) return path === '/' ? <Landing /> : path === '/registro' ? <Registro /> : <Login />;
+  if (path === '/login' || path === '/registro') { ir('/'); return null; }
 
   const hallada = elegir(path);
   const grupos = [...new Set(MENU.map((m) => m.grupo))];
   const visibles = MENU.filter((m) => puedeVer(usuario, m.ruta));
 
   let contenido;
-  if (!hallada) contenido = <Alerta tipo="aviso" titulo="Pagina no encontrada">Esa direccion no existe. Usa el menu.</Alerta>;
+  if (!hallada) contenido = <Alerta tipo="aviso" titulo="Página no encontrada">Esa dirección no existe. Usa el menú.</Alerta>;
   else if (!puedeVer(usuario, hallada.base)) contenido = <Alerta tipo="aviso" titulo="Sin acceso">Tu rol no ve esta pantalla. Si la necesitas, pide a un administrador revisar tu rol.</Alerta>;
   else { const C = hallada.C; contenido = <C params={hallada.params} query={query} />; }
 
   return (
     <div className="app">
       <a className="saltar" href="#contenido-principal" onClick={(e) => { e.preventDefault(); document.getElementById('contenido-principal')?.focus(); }}>Saltar al contenido</a>
+      <div className={`lateral-velo${menuAbierto ? ' abierto' : ''}`} aria-hidden="true" onClick={() => setMenuAbierto(false)} />
       <nav className={`lateral${menuAbierto ? ' abierto' : ''}`} aria-label="Principal" id="menu-lateral">
-        <a className="marca" href="#/" aria-label="EcoRAEE, inicio"><span className="marca-simbolo">↗</span><span>EcoRAEE<small>GESTIÓN CIRCULAR</small></span></a>
+        <a className="marca" href="#/" aria-label="EcoRAEE, inicio"><span className="marca-simbolo"><Leaf size={18} /></span>EcoRAEE</a>
         {grupos.map((g) => {
           const items = visibles.filter((m) => m.grupo === g);
           if (!items.length) return null;
@@ -78,10 +89,9 @@ export default function App() {
       </nav>
       <div className="cuerpo">
         <div className="barra">
-          <button type="button" className="btn btn-sec menu-btn" aria-expanded={menuAbierto} aria-controls="menu-lateral" onClick={() => setMenuAbierto((x) => !x)}>Menu</button>
+          <button type="button" className="btn btn-sec menu-btn" aria-label="Abrir menú" aria-expanded={menuAbierto} aria-controls="menu-lateral" onClick={() => setMenuAbierto((x) => !x)}><Menu size={20} aria-hidden="true" /></button>
           <div className="ubicacion-barra">Espacio de trabajo <span>/</span> <strong>{MENU.find(m => m.ruta === hallada?.base)?.titulo || 'Detalle'}</strong></div>
-          <div className="quien"><span className="avatar">{usuario.nombre_visible?.slice(0, 2).toUpperCase()}</span><div><strong>{usuario.nombre_visible}</strong><small>{usuario.roles.map((r) => ROLES[r] || r).join(', ')}</small></div></div>
-          <button type="button" className="btn btn-sec salir-btn" onClick={() => salir()}>Salir</button>
+          <MenuPerfil nombre={usuario.nombre_visible} detalle={usuario.roles.map((r) => ROLES[r] || r).join(', ')} alSalir={() => salir()} />
         </div>
         <main className="contenido" id="contenido-principal" tabIndex={-1}>{contenido}</main>
       </div>

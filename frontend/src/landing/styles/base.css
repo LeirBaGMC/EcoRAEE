@@ -1,0 +1,24 @@
+.eco { position: relative; overflow-x: clip; background: var(--eco-bg); color: var(--eco-tinta); font-family: var(--eco-font-texto); font-size: var(--eco-fs-md); line-height: var(--eco-lh-texto); }
+.eco *, .eco *::before, .eco *::after { box-sizing: border-box; }
+.eco h1, .eco h2, .eco h3, .eco p, .eco ul, .eco ol { margin: 0; padding: 0; }
+.eco ul, .eco ol { list-style: none; }
+.eco a { color: inherit; }
+.eco svg { flex: none; }
+.eco :focus-visible { outline: 3px solid var(--eco-verde); outline-offset: 3px; }
+.eco main, .eco footer { position: relative; z-index: 1; }
+
+.eco-fondo { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.eco-fondo::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(var(--eco-linea) 1px, transparent 1px), linear-gradient(90deg, var(--eco-linea) 1px, transparent 1px); background-size: 72px 72px; mask-image: radial-gradient(ellipse at 50% 30%, #000 10%, transparent 70%); opacity: .55; }
+.eco-mancha { position: absolute; filter: blur(60px); opacity: .6; animation: eco-morfo 18s ease-in-out infinite alternate; }
+.eco-mancha.a { width: 52vw; height: 52vw; left: -14vw; top: -12vw; background: radial-gradient(circle at 30% 30%, var(--eco-verde-vivo), transparent 68%); }
+.eco-mancha.b { width: 44vw; height: 44vw; right: -12vw; top: 30vh; background: radial-gradient(circle at 60% 40%, var(--eco-lima), transparent 70%); animation-duration: 22s; }
+.eco-mancha.c { width: 40vw; height: 40vw; left: 20vw; bottom: -18vw; background: radial-gradient(circle at 50% 50%, #8fe3c1, transparent 70%); animation-duration: 26s; }
+@keyframes eco-morfo { 0% { border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%; transform: translate(0,0) rotate(0); } 100% { border-radius: 63% 37% 38% 62% / 55% 61% 39% 45%; transform: translate(4vw,3vh) rotate(25deg); } }
+
+.eco-envoltura { width: min(var(--eco-ancho), 100% - var(--eco-gutter) * 2); margin-inline: auto; }
+.eco-seccion { padding-block: var(--eco-sp-8); }
+.eco-rejilla { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--eco-sp-4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .eco *, .eco *::before, .eco *::after { animation: none !important; transition: none !important; }
+}

@@ -28,7 +28,7 @@ function NuevaSolicitud({ alCrear }) {
     if (s) { setHecho({ lote: l, solicitud: s }); setLote(null); setElegidos([]); f.reiniciar(); disp.recargar(); alCrear(); }
   };
   return (
-    <Seccion titulo="Nueva solicitud" ayuda="Elige dispositivos registrados para formar un lote y pide su recoleccion o entrega directa.">
+    <Seccion titulo="Nueva solicitud" ayuda="Elige dispositivos registrados para formar un lote y pide su recolección o entrega directa.">
       {hecho && <Alerta tipo="exito" titulo="Solicitud creada">Lote {hecho.lote.codigo_lote} con {hecho.lote.total_dispositivos} dispositivo(s). Solicitud {hecho.solicitud.codigo_solicitud}, estado {texto(hecho.solicitud.estado_solicitud)}.</Alerta>}
       <Carga estado={disp} vacio="No tienes dispositivos en estado Registrado. Registra uno primero.">{(d) => (
         <form onSubmit={enviar} noValidate>
@@ -38,7 +38,7 @@ function NuevaSolicitud({ alCrear }) {
           </fieldset>
           {lote && <Alerta tipo="aviso">El lote {lote.codigo_lote} ya se creo. Falta crear la solicitud: reintenta sin volver a elegir equipos.</Alerta>}
           <div className="form-rejilla">
-            <Select label="Modalidad" requerido vacio="Selecciona..." opciones={[{ valor: 'RECOLECCION', texto: 'Recoleccion' }, { valor: 'ENTREGA_DIRECTA', texto: 'Entrega directa en el centro' }]} {...f.enlazar('modalidad')} errorApi={crearSol.error} />
+            <Select label="Modalidad" requerido vacio="Selecciona..." opciones={[{ valor: 'RECOLECCION', texto: 'Recolección' }, { valor: 'ENTREGA_DIRECTA', texto: 'Entrega directa en el centro' }]} {...f.enlazar('modalidad')} errorApi={crearSol.error} />
             <Input label="Zona referencial" requerido {...f.enlazar('zona_referencial')} errorApi={crearSol.error} />
           </div>
           <ErrorApi error={crearLote.error} />
@@ -59,7 +59,7 @@ function FilaAcciones({ s, alCambiar }) {
     <div>
       {s.estado_solicitud === 'PENDIENTE' && (
         <div className="acciones">
-          <input type="date" aria-label={`Fecha de recoleccion de ${s.codigo_solicitud}`} min={hoyISO()} value={fechaProg} onChange={(e) => setFechaProg(e.target.value)} />
+          <input type="date" aria-label={`Fecha de recolección de ${s.codigo_solicitud}`} min={hoyISO()} value={fechaProg} onChange={(e) => setFechaProg(e.target.value)} />
           <Boton tipo="secundario" className="btn btn-sec btn-chico" enviando={prog.enviando} onClick={async () => { if (await prog.ejecutar(s.id_solicitud, fechaProg)) alCambiar(); }}>Programar</Boton>
         </div>
       )}
@@ -76,7 +76,7 @@ export default function Solicitudes() {
   const lista = useAsync(() => Lotes.listarSolicitudes(pagina, 20, estado || undefined), [pagina, estado]);
   const esCoord = tiene(usuario, R_.C);
   return (
-    <Pagina titulo="Lotes y solicitudes" ayuda="El generador pide la recoleccion. El coordinador la programa y confirma que se recolecto. El centro recibe despues.">
+    <Pagina titulo="Lotes y solicitudes" ayuda="El generador pide la recolección. El coordinador la programa y confirma que se recolecto. El centro recibe despues.">
       {tiene(usuario, R_.G) && <NuevaSolicitud alCrear={lista.recargar} />}
       <Seccion titulo="Solicitudes">
         <Select label="Filtrar por estado" value={estado} vacio="Todos" onChange={(e) => { setEstado(e.target.value); setPagina(1); }} opciones={['PENDIENTE', 'PROGRAMADA', 'RECIBIDA'].map((x) => ({ valor: x, texto: texto(x) }))} />
@@ -88,7 +88,7 @@ export default function Solicitudes() {
             { titulo: 'Zona', campo: 'zona_referencial' },
             { titulo: 'Estado', ver: (f) => <Estado valor={f.estado_solicitud} /> },
             { titulo: 'Fecha', ver: (f) => fechaHora(f.fecha_solicitud) },
-            ...(esCoord ? [{ titulo: 'Recoleccion', ver: (f) => <FilaAcciones s={f} alCambiar={lista.recargar} /> }] : []),
+            ...(esCoord ? [{ titulo: 'Recolección', ver: (f) => <FilaAcciones s={f} alCambiar={lista.recargar} /> }] : []),
           ]} />
           <Paginacion pagina={d.pagina} tamano={d.tamano} total={d.total} onCambiar={setPagina} />
         </>)}</Carga>
