@@ -1,10 +1,12 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
+import { ChevronRight, Search } from 'lucide-react';
 import { errorCampo } from '../lib/hooks.js';
 import { texto } from '../lib/format.js';
+import { conTildes } from '../lib/acentos.js';
 
 export function Alerta({ tipo = 'info', titulo, children, accion }) {
   const rol = tipo === 'error' ? 'alert' : 'status';
-  const marca = { error: 'Error', exito: 'Listo', aviso: 'Atencion', info: 'Informacion' }[tipo];
+  const marca = { error: 'Error', exito: 'Listo', aviso: 'Atención', info: 'Información' }[tipo];
   return (
     <div className={`alerta alerta-${tipo}`} role={rol}>
       <strong>{titulo || marca}</strong>
@@ -18,9 +20,9 @@ export function Alerta({ tipo = 'info', titulo, children, accion }) {
 export function ErrorApi({ error, ayuda }) {
   if (!error) return null;
   const consejo = ayuda?.[error.status]
-    || (error.status === 0 ? 'Revisa tu conexion y vuelve a intentar.' : '')
+    || (error.status === 0 ? 'Revisa tu conexión y vuelve a intentar.' : '')
     || (error.status === 403 ? 'Si crees que deberias poder hacerlo, pide a un administrador revisar tu rol.' : '');
-  return <Alerta tipo="error" titulo={error.status ? `No se pudo completar (${error.status})` : 'Sin conexion'}>{error.message}{consejo ? ` ${consejo}` : ''}</Alerta>;
+  return <Alerta tipo="error" titulo={error.status ? `No se pudo completar (${error.status})` : 'Sin conexión'}>{conTildes(String(error.message))}{consejo ? ` ${consejo}` : ''}</Alerta>;
 }
 
 export function Cargando({ texto: t = 'Cargando' }) {
@@ -151,6 +153,32 @@ export function Seccion({ titulo, ayuda, acciones, children }) {
       <header><div><h2>{titulo}</h2>{ayuda && <p className="ayuda">{ayuda}</p>}</div>{acciones && <div className="acciones">{acciones}</div>}</header>
       {children}
     </section>
+  );
+}
+
+// Bloque que se abre y se cierra con una flechita. Cerrado por defecto.
+export function Desplegable({ titulo, total, abierto = false, children }) {
+  const [abre, setAbre] = useState(abierto);
+  const id = useId();
+  return (
+    <section className={`desplegable${abre ? ' abierto' : ''}`}>
+      <button type="button" className="desplegable-cabeza" aria-expanded={abre} aria-controls={id} onClick={() => setAbre((x) => !x)}>
+        <ChevronRight className="desplegable-flecha" size={18} aria-hidden="true" />{titulo}{total !== undefined && <span className="desplegable-total">{total}</span>}
+      </button>
+      <div className="desplegable-marco" id={id} inert={abre ? undefined : ''}>
+        <div className="desplegable-recorte"><div className="desplegable-cuerpo">{children}</div></div>
+      </div>
+    </section>
+  );
+}
+
+export function Buscador({ label, ...r }) {
+  const id = useId();
+  return (
+    <div className="campo">
+      <label htmlFor={id}>{label}</label>
+      <div className="buscador"><Search size={16} aria-hidden="true" /><input id={id} type="search" {...r} /></div>
+    </div>
   );
 }
 

@@ -1,0 +1,43 @@
+/* Variables globales de la landing: todo tamaño, color y tiempo sale de aquí. */
+:root {
+  /* Tipografía */
+  --eco-font-display: "Unbounded", "DM Sans", system-ui, sans-serif;
+  --eco-font-texto: "DM Sans", system-ui, sans-serif;
+  --eco-fs-2xs: clamp(.62rem, .58rem + .2vw, .72rem);
+  --eco-fs-xs: clamp(.75rem, .72rem + .15vw, .85rem);
+  --eco-fs-sm: clamp(.875rem, .85rem + .15vw, .95rem);
+  --eco-fs-md: clamp(1rem, .96rem + .2vw, 1.0625rem);
+  --eco-fs-lg: clamp(1.02rem, .98rem + .3vw, 1.15rem);
+  --eco-fs-xl: clamp(1.1rem, 1rem + .5vw, 1.35rem);
+  --eco-fs-2xl: clamp(1.25rem, 1.1rem + .9vw, 1.75rem);
+  --eco-fs-3xl: clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem);
+  --eco-fs-4xl: clamp(2rem, 1.1rem + 3.2vw, 3.8rem);
+  --eco-fs-num: clamp(1.5rem, 1.25rem + 1.1vw, 2.3rem);
+  --eco-lh-titulo: 1.1;
+  --eco-lh-texto: 1.6;
+  --eco-ls-titulo: -.03em;
+
+  /* Espacios */
+  --eco-sp-1: .25rem; --eco-sp-2: .5rem; --eco-sp-3: .75rem; --eco-sp-4: 1rem; --eco-sp-5: 1.5rem;
+  --eco-sp-6: 2rem; --eco-sp-7: 3rem; --eco-sp-8: clamp(3.5rem, 7vw, 6rem);
+  --eco-gutter: clamp(1rem, 3.5vw, 3.5rem);
+  --eco-ancho: 1440px;
+  --eco-nav-alto: 6.5rem;
+
+  /* Color */
+  --eco-bg: #f3f9f1; --eco-tinta: #0a2b1d; --eco-tinta-2: #44634f; --eco-blanco: #fff;
+  --eco-verde: #16a06b; --eco-verde-vivo: #3ddc97; --eco-verde-osc: #0f5c3f; --eco-lima: #d7f56b; --eco-menta: #c9ecd9;
+  --eco-vidrio: rgba(255,255,255,.62); --eco-borde: rgba(255,255,255,.9); --eco-linea: rgba(15,92,63,.14);
+  --eco-suave: rgba(22,160,107,.14); --eco-claro-invert: #d4f4e4;
+
+  /* Formas y sombras */
+  --eco-r-sm: 1rem; --eco-r-md: 2rem; --eco-r-lg: 2.2rem; --eco-r-pill: 999px;
+  --eco-r-hoja: 50% 50% 50% 14%;
+  --eco-sombra: 0 24px 60px -28px rgba(22,160,107,.4);
+  --eco-sombra-alta: 0 32px 70px -24px rgba(15,92,63,.5);
+
+  /* Movimiento */
+  --eco-t-rapido: .3s; --eco-t-medio: .6s; --eco-t-abrir: .65s; --eco-t-cerrar: .3s;
+  --eco-curva: cubic-bezier(.22,.8,.26,1);
+  --eco-curva-suave: cubic-bezier(.45,.05,.25,1);
+}

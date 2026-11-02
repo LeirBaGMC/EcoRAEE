@@ -1,0 +1,77 @@
+/* Cabecera de sección */
+.eco-cabecera { display: grid; justify-items: center; gap: var(--eco-sp-3); text-align: center; margin-bottom: clamp(1.75rem, 4vw, 3rem); }
+.eco-cabecera .eco-sub { max-width: 70ch; }
+
+/* Tarjeta de vidrio */
+.eco-tarjeta { position: relative; grid-column: span 12; padding: clamp(1.25rem, 2.4vw, 1.9rem); border-radius: var(--eco-r-lg) var(--eco-r-lg) var(--eco-r-lg) .8rem; background: var(--eco-vidrio); border: 1px solid var(--eco-borde); backdrop-filter: blur(16px); box-shadow: var(--eco-sombra); display: flex; flex-direction: column; gap: var(--eco-sp-4); transition: transform var(--eco-t-medio) var(--eco-curva), box-shadow var(--eco-t-medio); }
+@media (hover: hover) { .eco-tarjeta:hover { transform: translateY(-5px); box-shadow: var(--eco-sombra-alta); } }
+.eco-tarjeta p { color: var(--eco-tinta-2); }
+@media (min-width: 768px) { .eco-tarjeta { grid-column: span var(--col-md, 12); } }
+@media (min-width: 1024px) { .eco-tarjeta { grid-column: span var(--col, 12); } }
+
+/* Gráficos 3D */
+.eco-g3d { position: relative; height: var(--alto, 15rem); width: 100%; }
+.eco-g3d-lienzo { position: absolute; inset: 0; }
+.eco-g3d-lienzo canvas { width: 100%; height: 100%; display: block; }
+.eco-g3d-tip { position: absolute; left: 0; top: 0; padding: .3rem .6rem; border-radius: .6rem; background: var(--eco-tinta); color: var(--eco-blanco); font-size: var(--eco-fs-xs); font-weight: 600; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity var(--eco-t-rapido); z-index: 2; }
+.eco-g3d-tip.on { opacity: 1; }
+.eco-dona-centro { position: absolute; inset: 0 0 8% 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+.eco-dona-centro b { font: 600 var(--eco-fs-xl)/1 var(--eco-font-display); letter-spacing: -.04em; white-space: nowrap; }
+.eco-dona-centro span { font-size: var(--eco-fs-2xs); color: var(--eco-tinta-2); line-height: 1.25; margin-top: var(--eco-sp-1); max-width: 7rem; }
+.eco-leyenda { display: flex; flex-wrap: wrap; gap: var(--eco-sp-2) var(--eco-sp-4); justify-content: center; font-size: var(--eco-fs-xs); }
+.eco-leyenda button { all: unset; display: inline-flex; align-items: center; gap: var(--eco-sp-1); cursor: pointer; font-weight: 600; }
+.eco-leyenda i { width: .7rem; height: .7rem; border-radius: 50%; background: var(--c); }
+
+/* Lista de materiales */
+.eco-materiales { display: grid; gap: var(--eco-sp-1); }
+.eco-material { display: flex; justify-content: space-between; align-items: baseline; gap: var(--eco-sp-3); padding: var(--eco-sp-2) var(--eco-sp-3); border-radius: var(--eco-r-sm); transition: background var(--eco-t-medio), padding var(--eco-t-medio) var(--eco-curva); }
+.eco-material b { font: 600 var(--eco-fs-sm) var(--eco-font-display); color: var(--eco-verde-osc); }
+.eco-material span { color: var(--eco-tinta-2); font-size: var(--eco-fs-sm); text-align: right; }
+@media (hover: hover) { .eco-material:hover { background: var(--eco-suave); padding-inline: var(--eco-sp-4); } }
+
+/* Hallazgo */
+.eco-hallazgo { grid-column: span 12; display: grid; grid-template-columns: auto 1fr; gap: var(--eco-sp-3); padding: var(--eco-sp-4); border-radius: var(--eco-r-md); transition: background var(--eco-t-medio); }
+@media (hover: hover) { .eco-hallazgo:hover { background: var(--eco-vidrio); } }
+@media (hover: hover) { .eco-hallazgo:hover .eco-burbuja { transform: rotate(-8deg) scale(1.08); } }
+.eco-hallazgo p { color: var(--eco-tinta-2); font-size: var(--eco-fs-sm); margin-top: var(--eco-sp-1); }
+@media (min-width: 768px) { .eco-hallazgo { grid-column: span 4; } }
+
+/* Indicadores */
+.eco-indicadores { display: grid; grid-template-columns: 1fr 1fr; padding-block: var(--eco-sp-2); }
+.eco-indicador { display: grid; gap: var(--eco-sp-1); justify-items: center; text-align: center; padding: var(--eco-sp-3); border-left: 1px solid var(--eco-linea); transition: transform var(--eco-t-medio) var(--eco-curva); }
+.eco-indicador:nth-child(odd) { border-left: 0; }
+@media (hover: hover) { .eco-indicador:hover { transform: translateY(-3px); } }
+.eco-indicador p { color: var(--eco-tinta-2); font-size: var(--eco-fs-sm); }
+@media (min-width: 768px) { .eco-indicadores { grid-template-columns: repeat(4, 1fr); } .eco-indicador:nth-child(odd) { border-left: 1px solid var(--eco-linea); } .eco-indicador:first-child { border-left: 0; } }
+
+/* Mosaico infinito: todos los cuadros miden igual */
+.eco-fila { display: flex; gap: var(--eco-sp-4); width: max-content; padding-block: var(--eco-sp-2); animation: eco-desliza var(--dur, 90s) linear infinite; }
+.eco-fila.inversa { animation-direction: reverse; }
+.eco-fila:hover, .eco-fila:focus-within { animation-play-state: paused; }
+@keyframes eco-desliza { to { transform: translateX(calc(-50% - var(--eco-sp-2))); } }
+.eco-tile { --w: clamp(16rem, 21vw, 21rem); display: flex; align-items: center; gap: var(--eco-sp-4); flex: none; width: var(--w); height: 10.5rem; padding: var(--eco-sp-5); border-radius: var(--eco-r-md) var(--eco-r-md) var(--eco-r-md) .7rem; background: var(--eco-vidrio); border: 1px solid var(--eco-borde); box-shadow: var(--eco-sombra); overflow: hidden; cursor: pointer; transition: width var(--eco-t-cerrar) var(--eco-curva-suave), background var(--eco-t-cerrar) var(--eco-curva-suave), color var(--eco-t-cerrar) var(--eco-curva-suave); }
+.eco-tile:hover, .eco-tile:focus { --w: min(clamp(21rem, 33vw, 33rem), 100vw - 2.5rem); background: var(--eco-verde-osc); color: var(--eco-blanco); outline: none; transition-duration: var(--eco-t-abrir); }
+.eco-tile .eco-burbuja { --tam: 3.8rem; flex: none; transition: background var(--eco-t-cerrar), color var(--eco-t-cerrar), transform var(--eco-t-cerrar) var(--eco-curva-suave); }
+.eco-tile:hover .eco-burbuja, .eco-tile:focus .eco-burbuja { background: rgba(255,255,255,.16); color: var(--eco-lima); transform: rotate(-8deg); transition-duration: var(--eco-t-abrir); }
+.eco-tile-texto { min-width: 0; display: grid; gap: var(--eco-sp-2); }
+.eco-tile-detalle { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows var(--eco-t-cerrar) var(--eco-curva-suave), opacity var(--eco-t-cerrar) var(--eco-curva-suave); }
+.eco-tile-detalle p { overflow: hidden; min-height: 0; font-size: var(--eco-fs-sm); line-height: 1.4; width: 19rem; max-width: 100%; }
+.eco-tile:hover .eco-tile-detalle, .eco-tile:focus .eco-tile-detalle { grid-template-rows: 1fr; opacity: 1; transition-duration: var(--eco-t-abrir); }
+
+/* Nodos de la red de la mina */
+.eco-ancla { position: absolute; width: 0; height: 0; z-index: 2; }
+.eco-ancla:hover { z-index: 6; }
+.eco-cuerpo { position: absolute; left: 0; top: 0; translate: -50% -50%; display: grid; justify-items: center; gap: var(--eco-sp-1); cursor: pointer; transition: scale var(--eco-t-medio) var(--eco-curva); }
+@media (hover: hover) { .eco-cuerpo:hover { scale: 1.18; } }
+.eco-ancla.n1 .eco-burbuja { --tam: clamp(2.6rem, 5vw, 3.4rem); background: var(--eco-blanco); box-shadow: var(--eco-sombra); color: var(--eco-verde-osc); }
+.eco-ancla.n1 .eco-cuerpo > span:nth-child(2) { font-size: var(--eco-fs-xs); font-weight: 600; white-space: nowrap; background: var(--eco-bg); padding-inline: .3rem; border-radius: .4rem; }
+.eco-chip { display: block; width: .55rem; height: .55rem; overflow: hidden; border-radius: var(--eco-r-pill); background: var(--eco-verde); font-size: var(--eco-fs-2xs); font-weight: 600; white-space: nowrap; color: transparent; transition: background var(--eco-t-rapido), color var(--eco-t-rapido); }
+.eco-cuerpo:hover .eco-chip { background: var(--eco-verde); color: var(--eco-blanco); }
+.eco-grano { display: block; width: .35rem; height: .35rem; border-radius: 50%; background: var(--eco-verde-vivo); }
+.eco-info { position: absolute; left: 50%; translate: calc(-50% + var(--cos) * -38%) 0; width: max-content; max-width: 13rem; padding: .35rem .65rem; border-radius: .7rem; background: var(--eco-tinta); color: var(--eco-blanco); font-size: var(--eco-fs-xs); line-height: 1.3; font-weight: 500; text-align: center; opacity: 0; pointer-events: none; transition: opacity var(--eco-t-rapido); }
+.eco-info.abajo { top: calc(100% + .35rem); } .eco-info.arriba { bottom: calc(100% + .35rem); }
+.eco-cuerpo:hover .eco-info { opacity: 1; }
+@media (min-width: 768px) {
+  .eco-chip { width: auto; height: auto; overflow: visible; padding: .15rem .55rem; background: var(--eco-blanco); border: 1px solid var(--eco-linea); color: var(--eco-tinta-2); }
+  .eco-grano { width: .6rem; height: .6rem; box-shadow: 0 0 0 3px rgba(61,220,151,.22); }
+}

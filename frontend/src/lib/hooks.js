@@ -41,6 +41,16 @@ export function useAccion(fn) {
   return { ejecutar, enviando, error, ok, limpiar: () => { setError(null); setOk(null); } };
 }
 
+// Trae todas las páginas de un listado para poder filtrar en el navegador.
+export async function traerTodo(pedir, tamano = 100) {
+  const primera = await pedir(1, tamano);
+  const items = [...primera.items];
+  for (let p = 2; items.length < primera.total; p += 1) items.push(...(await pedir(p, tamano)).items);
+  return items;
+}
+
+export const normalizar = (v) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 export function useForm(inicial) {
   const [v, setV] = useState(inicial);
   const set = (nombre, valor) => setV((x) => ({ ...x, [nombre]: valor }));

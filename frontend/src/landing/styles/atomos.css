@@ -1,0 +1,27 @@
+.eco-t1, .eco-t2, .eco-t3, .eco-t4 { font-family: var(--eco-font-display); letter-spacing: var(--eco-ls-titulo); line-height: var(--eco-lh-titulo); text-wrap: balance; }
+.eco-t1 { font-size: var(--eco-fs-4xl); font-weight: 600; }
+.eco-t2 { font-size: var(--eco-fs-3xl); font-weight: 600; }
+.eco-t3 { font-size: var(--eco-fs-2xl); font-weight: 600; }
+.eco-t4 { font-size: var(--eco-fs-lg); font-weight: 500; letter-spacing: -.02em; line-height: 1.25; }
+.eco-sub { color: var(--eco-tinta-2); font-size: var(--eco-fs-lg); max-width: 58ch; margin-inline: auto; text-wrap: pretty; }
+.eco-nota { color: var(--eco-tinta-2); font-size: var(--eco-fs-xs); }
+
+.eco-boton { display: inline-flex; align-items: center; justify-content: center; gap: var(--eco-sp-2); min-height: 3.25rem; padding: 0 var(--eco-sp-5); border-radius: var(--eco-r-pill); border: 1px solid transparent; font: 600 var(--eco-fs-md) var(--eco-font-texto); text-decoration: none; cursor: pointer; transition: transform var(--eco-t-rapido), box-shadow var(--eco-t-rapido), background var(--eco-t-rapido); }
+.eco-boton.primario { background: linear-gradient(135deg, var(--eco-verde), var(--eco-verde-osc)); color: var(--eco-blanco); box-shadow: 0 14px 30px -12px rgba(15,92,63,.8); }
+@media (hover: hover) { .eco-boton.primario:hover { transform: translateY(-3px); box-shadow: 0 20px 36px -12px rgba(15,92,63,.85); } }
+.eco-boton.suave { background: var(--eco-vidrio); border-color: var(--eco-borde); color: var(--eco-tinta); backdrop-filter: blur(14px); }
+@media (hover: hover) { .eco-boton.suave:hover { background: var(--eco-blanco); transform: translateY(-3px); } }
+.eco-boton.chico { min-height: 2.7rem; padding: 0 var(--eco-sp-4); font-size: var(--eco-fs-sm); }
+.eco-boton svg { transition: transform var(--eco-t-rapido); }
+@media (hover: hover) { .eco-boton:hover svg { transform: translateX(4px); } }
+
+.eco-burbuja { display: grid; place-items: center; width: var(--tam, 3.2rem); height: var(--tam, 3.2rem); border-radius: var(--eco-r-hoja); background: var(--eco-suave); color: var(--eco-verde); transition: transform var(--eco-t-medio) var(--eco-curva), background var(--eco-t-rapido); }
+.eco-burbuja svg { width: 46%; height: 46%; }
+
+.eco-marca { display: inline-flex; align-items: center; gap: var(--eco-sp-2); font: 600 var(--eco-fs-lg) var(--eco-font-display); letter-spacing: -.04em; text-decoration: none; }
+.eco-marca span { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--eco-r-hoja); background: linear-gradient(135deg, var(--eco-verde-vivo), var(--eco-verde)); color: var(--eco-blanco); }
+
+.eco-etiqueta { display: inline-flex; align-items: center; gap: var(--eco-sp-1); width: fit-content; padding: .3rem .75rem; border-radius: var(--eco-r-pill); background: var(--eco-lima); color: var(--eco-verde-osc); font-size: var(--eco-fs-xs); font-weight: 700; white-space: nowrap; }
+
+.eco-numero { font: 600 var(--eco-fs-num)/1 var(--eco-font-display); letter-spacing: -.05em; }
+.eco-numero small { font: 600 .32em var(--eco-font-texto); letter-spacing: 0; margin-left: .4em; }

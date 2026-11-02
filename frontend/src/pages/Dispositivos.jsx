@@ -9,7 +9,7 @@ import { tiene, R_ } from '../lib/permisos.js';
 import { Alerta, Area, Boton, Carga, Datos, ErrorApi, Estado, Input, Paginacion, Pagina, Select, Seccion, Tabla } from '../components/ui.jsx';
 
 export const ESTADOS_DISPOSITIVO = ['REGISTRADO', 'EN_RECOLECCION', 'RECIBIDO', 'EVALUADO', 'EN_TRANSITO', 'EN_TRATAMIENTO', 'REACONDICIONADO', 'ASIGNADO', 'CERRADO'];
-const CONDICIONES = [['ENCIENDE', 'Enciende'], ['NO_ENCIENDE', 'No enciende'], ['DANO_FISICO', 'Dano fisico'], ['INCOMPLETO', 'Incompleto']].map(([valor, t]) => ({ valor, texto: t }));
+const CONDICIONES = [['ENCIENDE', 'Enciende'], ['NO_ENCIENDE', 'No enciende'], ['DANO_FISICO', 'Dano físico'], ['INCOMPLETO', 'Incompleto']].map(([valor, t]) => ({ valor, texto: t }));
 
 export function Dispositivos() {
   const { usuario } = useAuth();
@@ -26,10 +26,10 @@ export function Dispositivos() {
         <Carga estado={est} vacio="No hay dispositivos con ese filtro.">
           {(d) => (<>
             <Tabla titulo="Dispositivos" clave="id_dispositivo" filas={d.items} columnas={[
-              { titulo: 'Codigo', ver: (f) => <a href={`#/dispositivos/${f.id_dispositivo}`}>{f.codigo_trazabilidad}</a> },
+              { titulo: 'Código', ver: (f) => <a href={`#/dispositivos/${f.id_dispositivo}`}>{f.codigo_trazabilidad}</a> },
               { titulo: 'Tipo', ver: (f) => texto(f.tipo_registro) },
               { titulo: 'Equipo', ver: (f) => [f.marca, f.modelo].filter(Boolean).join(' ') || '-' },
-              { titulo: 'Condicion declarada', ver: (f) => texto(f.condicion_declarada) },
+              { titulo: 'Condición declarada', ver: (f) => texto(f.condicion_declarada) },
               { titulo: 'Estado', ver: (f) => <Estado valor={f.estado_actual} /> },
               { titulo: 'Centro', ver: (f) => f.nombre_centro || '-' },
               { titulo: 'Registrado', ver: (f) => fechaHora(f.fecha_registro) },
@@ -57,7 +57,7 @@ export function DispositivoNuevo() {
     if (r) setCreado(r);
   };
   return (
-    <Pagina titulo="Registrar dispositivo" ayuda="Un equipo individual lleva numero de serie. Un registro a granel lleva peso y cantidad, sin serie.">
+    <Pagina titulo="Registrar dispositivo" ayuda="Un equipo individual lleva número de serie. Un registro a granel lleva peso y cantidad, sin serie.">
       {creado && (
         <Alerta tipo="exito" titulo="Dispositivo registrado" accion={<p><a href={`#/dispositivos/${creado.id_dispositivo}`}>Ver {creado.codigo_trazabilidad}</a> o registra otro abajo.</p>}>
           Codigo de trazabilidad {creado.codigo_trazabilidad}, estado {texto(creado.estado)}.
@@ -68,10 +68,10 @@ export function DispositivoNuevo() {
           <form onSubmit={enviar} noValidate>
             <div className="form-rejilla">
               <Select label="Tipo de registro" requerido opciones={[{ valor: 'INDIVIDUAL', texto: 'Individual (con serie)' }, { valor: 'GRANEL', texto: 'A granel (peso y cantidad)' }]} vacio="Selecciona..." {...f.enlazar('tipo_registro')} errorApi={acc.error} />
-              <Select label="Categoria" requerido opciones={c.categorias.map((x) => ({ valor: x.id_categoria, texto: x.nombre_categoria }))} {...f.enlazar('id_categoria')} errorApi={acc.error} />
-              <Select label="Condicion declarada" requerido opciones={CONDICIONES} {...f.enlazar('condicion_declarada')} errorApi={acc.error} />
+              <Select label="Categoría" requerido opciones={c.categorias.map((x) => ({ valor: x.id_categoria, texto: x.nombre_categoria }))} {...f.enlazar('id_categoria')} errorApi={acc.error} />
+              <Select label="Condición declarada" requerido opciones={CONDICIONES} {...f.enlazar('condicion_declarada')} errorApi={acc.error} />
               {!granel && <>
-                <Input label="Numero de serie" requerido {...f.enlazar('numero_serie')} errorApi={acc.error} />
+                <Input label="Número de serie" requerido {...f.enlazar('numero_serie')} errorApi={acc.error} />
                 <Input label="Marca" {...f.enlazar('marca')} errorApi={acc.error} />
                 <Input label="Modelo" {...f.enlazar('modelo')} errorApi={acc.error} />
               </>}
@@ -80,7 +80,7 @@ export function DispositivoNuevo() {
                 <Input label="Cantidad de unidades" type="number" step="1" min="1" requerido {...f.enlazar('cantidad_unidades')} errorApi={acc.error} />
               </>}
             </div>
-            <ErrorApi error={acc.error} ayuda={{ 409: 'Ese numero de serie ya existe.' }} />
+            <ErrorApi error={acc.error} ayuda={{ 409: 'Ese número de serie ya existe.' }} />
             <Boton type="submit" enviando={acc.enviando} disabled={!f.v.id_categoria}>Registrar</Boton>
           </form>
         )}</Carga>
@@ -99,17 +99,17 @@ function Evaluar({ id, alTerminar }) {
     if (r) { f.reiniciar(); alTerminar(); }
   };
   return (
-    <Seccion titulo="Registrar evaluacion tecnica" ayuda="Solo el tecnico evaluador clasifica. Una reevaluacion no se permite mientras el dispositivo tenga un movimiento activo.">
+    <Seccion titulo="Registrar evaluación técnica" ayuda="Solo el técnico evaluador clasifica. Una reevaluacion no se permite mientras el dispositivo tenga un movimiento activo.">
       <Carga estado={cat}>{(c) => (
         <form onSubmit={enviar} noValidate>
           <div className="form-rejilla">
-            <Select label="Condicion constatada" requerido opciones={CONDICIONES} {...f.enlazar('condicion_constatada')} errorApi={acc.error} />
-            <Select label="Clasificacion tecnica" requerido opciones={c.clasificaciones.map((x) => ({ valor: x.id_clasificacion, texto: `${texto(x.nombre_clasificacion)}${x.permite_asignacion ? '' : ' (no se asigna a beneficiarios)'}` }))} {...f.enlazar('id_clasificacion')} errorApi={acc.error} />
+            <Select label="Condición constatada" requerido opciones={CONDICIONES} {...f.enlazar('condicion_constatada')} errorApi={acc.error} />
+            <Select label="Clasificación técnica" requerido opciones={c.clasificaciones.map((x) => ({ valor: x.id_clasificacion, texto: `${texto(x.nombre_clasificacion)}${x.permite_asignacion ? '' : ' (no se asigna a beneficiarios)'}` }))} {...f.enlazar('id_clasificacion')} errorApi={acc.error} />
           </div>
           <Area label="Diagnostico" requerido {...f.enlazar('diagnostico')} errorApi={acc.error} />
           <ErrorApi error={acc.error} ayuda={{ 409: 'Si hay un movimiento programado o autorizado, anulalo primero desde Movimientos.' }} />
           {acc.ok && !acc.error && <Alerta tipo="exito">Evaluacion {acc.ok.nro_evaluacion} guardada. Clasificacion {texto(acc.ok.clasificacion)}, estado {texto(acc.ok.estado_actual)}.</Alerta>}
-          <Boton type="submit" enviando={acc.enviando} disabled={!f.v.id_clasificacion || !f.v.diagnostico.trim()}>Guardar evaluacion</Boton>
+          <Boton type="submit" enviando={acc.enviando} disabled={!f.v.id_clasificacion || !f.v.diagnostico.trim()}>Guardar evaluación</Boton>
         </form>
       )}</Carga>
     </Seccion>
@@ -128,8 +128,8 @@ export function DispositivoDetalle({ params }) {
       <Seccion titulo="Datos">
         <Carga estado={det}>{(d) => (<>
           <Datos pares={[
-            ['Codigo', d.codigo_trazabilidad], ['Tipo', texto(d.tipo_registro)], ['Marca', d.marca], ['Modelo', d.modelo],
-            ['Condicion declarada', texto(d.condicion_declarada)], ['Estado actual', <Estado key="e" valor={d.estado_actual} />],
+            ['Código', d.codigo_trazabilidad], ['Tipo', texto(d.tipo_registro)], ['Marca', d.marca], ['Modelo', d.modelo],
+            ['Condición declarada', texto(d.condicion_declarada)], ['Estado actual', <Estado key="e" valor={d.estado_actual} />],
             ['Centro actual', d.nombre_centro], ['Registrado', fechaHora(d.fecha_registro)],
           ]} />
           <Acciones d={d} usuario={usuario} />
