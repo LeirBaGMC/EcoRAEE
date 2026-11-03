@@ -39,6 +39,12 @@ def cambiar_estado_lote(sesion, id_lote: int, nuevo: str) -> None:
     sesion.execute(text("UPDATE lote SET estado_lote = :e WHERE id_lote = :i"), {"e": nuevo, "i": id_lote})
 
 
+def eliminar_lote(sesion, id_lote: int) -> None:
+    """Con el lote bloqueado, elimina vinculos y agrupacion; conserva dispositivos e historial, sin cascadas."""
+    sesion.execute(text("DELETE FROM lote_dispositivo WHERE id_lote = :i"), {"i": id_lote})
+    sesion.execute(text("DELETE FROM lote WHERE id_lote = :i"), {"i": id_lote})
+
+
 def dispositivos_de_lote(sesion, id_lote: int):
     return [r[0] for r in sesion.execute(text(
         "SELECT id_dispositivo FROM lote_dispositivo WHERE id_lote = :l ORDER BY id_dispositivo"), {"l": id_lote})]

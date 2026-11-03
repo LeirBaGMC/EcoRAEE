@@ -6,7 +6,7 @@ from typing import Iterable
 from .errors import PermisoDenegadoError
 
 PERMISOS = {
-    "GENERADOR": {"dispositivo:registrar", "dispositivo:ver", "lote:registrar", "lote:ver", "solicitud:crear", "solicitud:ver"},
+    "GENERADOR": {"dispositivo:registrar", "dispositivo:ver", "lote:registrar", "lote:ver", "lote:eliminar", "solicitud:crear", "solicitud:ver"},
     "OPERADOR_CENTRO": {"dispositivo:registrar", "dispositivo:ver", "recepcion:registrar", "inventario:gestionar",
                         "evidencia:subir", "movimiento:despachar", "movimiento:ver", "red:ver", "lote:ver", "solicitud:ver"},
     "TECNICO_EVALUADOR": {"evaluacion:registrar", "dispositivo:clasificar", "dispositivo:ver",

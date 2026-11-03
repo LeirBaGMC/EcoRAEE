@@ -1,78 +1,126 @@
-# Guion del video — Integrador EcoRAEE Cloud, Parte II
+# Guion y pasos del video — EcoRAEE Cloud, Parte II
 
-Equipo: **Katty — frontend; Gabriel — backend; Katalina — base de datos**.
+Equipo: **Katty — frontend; Gabriel — backend; Katalina — base de datos e integración**.
 
-Duración objetivo: **4 minutos y 40 segundos**. El límite de entrega es 5 minutos incluyendo todas las intervenciones. Las acciones en pantalla se realizan mientras habla cada integrante.
+Duración objetivo: **4:40**, con 20 segundos de margen hasta el límite de 5:00. Katty tiene aproximadamente 1:10; Gabriel, 1:50; Katalina, 1:40. Son tres intervenciones continuas: cada persona habla una sola vez mientras realiza sus acciones. Estos tiempos requieren un ensayo con cronómetro.
 
-## Preparación antes de grabar
+## Regla para las instalaciones independientes
 
-- Ejecutar frontend en http://localhost:5173, API en http://localhost:8000 y SQL Server local con la base ecoraee_cloud. La aplicación y los archivos de evidencia de esta demostración son locales; no se presenta un despliegue AWS.
-- Usar la cuenta temporal auditor1; sus instrucciones están en CUENTA_AUDITORIA_TEMPORAL.md. Reúne los siete roles para recorrer módulos, pero mantiene las restricciones de organización. No es un permiso para confirmar entregas de otras entidades.
-- Dejar abierto el navegador y SSMS en el mismo equipo. Abrir consultas_video_parte_ii.sql en SSMS y ejecutarlo sobre la instancia local correcta.
-- Preparar el formulario de registro: Individual, LAPTOP, Enciende, serie **VIDEO-RAEE-001**, marca **PRUEBA VIDEO**, modelo **Demo local**. No registrarlo antes de comenzar si se quiere mostrar la creación. Si la serie ya existe por un ensayo, cambiarla también en la consulta SQL, por ejemplo a VIDEO-RAEE-002.
-- En las herramientas de desarrollo del navegador, preparar Network/Red filtrada por dispositivos. Mostrar URL, estado y respuesta; no mostrar el .env ni las cabeceras Authorization. No dedicar tiempo del video a instalar dependencias o buscar ventanas.
-- Para actualizar capacidad, localizar la conexión **#42: Prueba frontend - Recoleccion → Prueba frontend - Reciclaje**. En esta instalación estaba en 3 UND al preparar el guion; comprobar su valor antes de grabar. Proponer una capacidad superior, por ejemplo 10 UND si sigue en 3.
-- Para demostrar una baja lógica, identificar antes un movimiento **de prueba** Programado o Autorizado que no se vaya a utilizar. Anularlo conserva el historial y libera su reserva; no se puede repetir sobre un movimiento cerrado. Anotar su número en la variable opcional del SQL. No anular un proceso real.
-- Cada integrante debe adaptar «mi aporte» al trabajo que realmente realizó. No afirmar que hay eliminación física de dispositivos: la aplicación usa anulación de movimientos y desactivación de cuentas para las bajas que corresponden.
+Cada integrante utiliza su propia instalación local. GitHub comparte el código, no los registros de SQL Server. Los dispositivos, IDs, categorías y conexiones de una laptop no se dan por existentes en otra.
 
-## 0:00–0:15 — Gabriel: presentación
+- Katty registra `VIDEO-KATTY-001` en su frontend.
+- Gabriel registra `VIDEO-GABRIEL-001` mediante su Swagger.
+- Katalina registra `VIDEO-KATALINA-001` en su frontend y consulta esa misma serie en su SQL Server. Ella muestra la integración completa dentro de su propia laptop.
 
-**Pantalla:** inicio de EcoRAEE y dirección localhost visible.
+No presentar estos tres equipos como un mismo registro compartido. Si una serie ya existe por un ensayo, cambiar su sufijo a 002 o 003 en todas las acciones de esa persona y, para Katalina, también en el SQL.
 
-> Somos Katty, Katalina y Gabriel. Presentamos la segunda parte de EcoRAEE Cloud: una aplicación para la trazabilidad de residuos electrónicos. En esta etapa, el frontend, el backend y la base de datos funcionan en nuestro equipo local.
+## Preparación fuera de la grabación
 
-## 0:15–1:30 — Katty: frontend y creación
+1. Comprobar frontend, backend y SQL Server de cada instalación que se vaya a utilizar. Direcciones habituales: frontend `http://localhost:5173`, Swagger `http://localhost:8000/docs`, base `ecoraee_cloud`.
+2. Usar una cuenta de prueba con los permisos necesarios. Si está creada `auditor1`, las instrucciones están en CUENTA_AUDITORIA_TEMPORAL.md. La cuenta debe existir en cada base; no recrearla si ya existe.
+3. Gabriel deja Swagger autorizado: POST /auth/login, copiar access_token, Authorize y pegar solo el token. Mantener fuera de la grabación la preparación de la sesión.
+4. Gabriel consulta GET /catalogos y confirma el ID de LAPTOP en su base. El JSON de abajo usa 1 como ejemplo: reemplazarlo si el catálogo local utiliza otro número.
+5. Preparar los formularios de Katty y Katalina con Individual, LAPTOP, Enciende, marca PRUEBA VIDEO y modelo Demo local. Cada una usa su propia serie nueva. No pulsar Registrar hasta la grabación.
+6. Katalina localiza una conexión **de prueba** en su propia página Centros y conexiones. Anota su ID y su capacidad actual. Prepara una capacidad superior válida; por ejemplo, 10 si actualmente es 3. Si ya vale 10, elegir otro valor superior.
+7. En la laptop de Katalina, abrir consultas_video_parte_ii.sql en SSMS, comprobar la instancia y ajustar @Serie y @Conexion al caso local. Dejar también preparada la página de la conexión que va a editar.
+8. Si Gabriel va a demostrar la baja lógica, elegir antes un movimiento **de prueba que ya no se necesite**, PROGRAMADO o AUTORIZADO, de su propia instalación. Anotar su ID y preparar POST /movimientos/{id_movimiento}/anular. No anular movimientos reales ni usar un ID de otra laptop. Si no hay un caso preparado, omitir este paso y su frase del diálogo.
 
-**Pantalla:** abrir Dispositivos → Registrar dispositivo; completar los datos preparados y registrar una sola vez. Mostrar el código generado y abrir el detalle. Volver al formulario con la misma serie e intentar registrar otra vez para mostrar el 409.
+## Katty — presentación y frontend, aproximadamente 1:10
 
+### Qué hacer en pantalla
+
+1. Mostrar brevemente Inicio y la dirección localhost.
+2. Ir a Dispositivos → Registrar dispositivo y usar la serie VIDEO-KATTY-001. Registrar el equipo una sola vez.
+3. Abrir el enlace del dispositivo creado y mostrar código, datos e historial.
+4. Recargar el detalle y comprobar que conserva los datos. Señalar brevemente el menú de módulos.
+
+### Diálogo continuo
+
+> Somos Katty, Gabriel y Katalina. Presentamos EcoRAEE Cloud, una aplicación para gestionar la trazabilidad de residuos electrónicos. En esta etapa, todos los componentes se ejecutan localmente y cada demostración utiliza los datos de su propia instalación.
+>
 > Mi aporte fue el frontend, desarrollado con React y Vite. Organicé las pantallas, los formularios y la navegación según los roles de cada usuario.
 >
-> Para la demostración utilizamos una cuenta temporal con varios roles. Las cuentas habituales muestran solamente las herramientas que les corresponden.
+> Aquí registro un equipo individual con su categoría, condición y número de serie. Al guardar, la aplicación devuelve un código de trazabilidad y permite consultar su detalle e historial.
 >
-> Aquí registro un equipo individual. Selecciono su categoría, condición y número de serie. El formulario valida los datos y envía la solicitud al backend. Al guardar, recibimos un código de trazabilidad y podemos consultar el estado y el historial del equipo.
+> Al recargar, los datos se mantienen. El menú también permite acceder a los procesos de solicitudes, recepciones, movimientos y destino final, según los permisos de la cuenta.
+
+## Gabriel — backend mediante Swagger, aproximadamente 1:50
+
+### Qué hacer en pantalla
+
+1. Abrir POST /dispositivos → Try it out. Pegar este JSON, con la categoría verificada en su base, y pulsar Execute:
+
+```json
+{
+  "tipo_registro": "INDIVIDUAL",
+  "id_categoria": 1,
+  "condicion_declarada": "ENCIENDE",
+  "numero_serie": "",
+  "marca": "PRUEBA VIDEO",
+  "modelo": "Demo local"
+}
+```
+
+Mostrar **422** y el mensaje de número de serie obligatorio. Este intento no crea el dispositivo.
+
+2. En el mismo JSON, cambiar numero_serie por **VIDEO-GABRIEL-001**, ejecutar y mostrar **201**, id_dispositivo y codigo_trazabilidad. Copiar el ID real.
+3. Repetir exactamente esa petición: mostrar **409**, serie ya registrada. No se crea un segundo equipo.
+4. Abrir POST /lotes → Try it out. Pegar lo siguiente **reemplazando 150 por el ID real obtenido en el paso 2**:
+
+```json
+{
+  "ids_dispositivos": [150]
+}
+```
+
+Ejecutar y mostrar **201**, id_lote y total_dispositivos = 1. Se crea el lote y su vínculo con el equipo existente; no se crea otro dispositivo. Anotar el ID del lote.
+
+5. Abrir GET /lotes/{id_lote}, introducir el ID recién recibido, ejecutar y mostrar **200** y el dispositivo asociado. Si se repite POST /lotes con ese mismo equipo, el error es 422, no 409.
+6. Solo con el caso de baja preparado: ejecutar POST /movimientos/{id_movimiento}/anular con su ID de prueba y comprobar **200** y estado_movimiento = ANULADO. No usar el dispositivo recién creado como id_movimiento: son entidades e identificadores distintos.
+
+### Diálogo continuo
+
+> Mi aporte fue el backend, implementado con FastAPI y conectado a SQL Server. Swagger muestra los endpoints con los que la interfaz se comunica con la API. Para esta prueba utilizo los datos de mi instalación local.
 >
-> Si intento registrar nuevamente la misma serie, aparece un conflicto y no se crea otro equipo. La interfaz también permite gestionar solicitudes, recepciones, movimientos, tratamientos, asignaciones y evidencias, manteniendo la relación entre las etapas.
-
-## 1:30–2:50 — Gabriel: API, actualización y baja lógica
-
-**Pantalla:** en Red/Network, mostrar la petición POST a localhost:8000/dispositivos con 201 y su respuesta. Mostrar también el 409 del intento repetido. Después ir a Centros y conexiones, buscar #42, editar una capacidad superior válida y guardar. Finalmente mostrar y confirmar la anulación del movimiento de prueba previamente elegido.
-
-> Mi aporte fue el backend, implementado con FastAPI y conectado a SQL Server. La interfaz se comunica con él mediante una API.
+> Primero envío un equipo individual sin número de serie. El backend lo rechaza con un error 422 y explica qué dato falta. Al completar la serie, devuelve 201, junto con el identificador y el código del equipo creado.
 >
-> Esta petición muestra la integración: el frontend envía los datos, la API responde con el registro creado y su código. En el intento duplicado responde con 409 y un mensaje que la interfaz puede mostrar.
+> Si repito el registro, recibo 409 porque la serie ya existe. Así mostramos validación de datos y manejo de errores.
 >
-> El backend valida los datos, los permisos, las relaciones y las reglas del proceso. Por ejemplo, controla la capacidad disponible antes de programar un traslado y exige una guía para cerrarlo.
+> Después utilizo el identificador para crear un lote. El backend comprueba el dispositivo y guarda la relación en lote_dispositivo dentro de una transacción. Al consultar el lote, aparece el equipo asociado.
+
+**Solo si se ejecutó el paso 6, continuar sin cambiar de turno:**
+
+> Finalmente anulo este movimiento de prueba. Es una baja lógica: conserva el registro y su historial para mantener la trazabilidad.
+
+## Katalina — base de datos e integración, aproximadamente 1:40
+
+### Qué hacer en pantalla
+
+1. En SSMS, mostrar la instancia local y ecoraee_cloud → Tablas. Dejar visibles dispositivo, dispositivo_individual y categoria_dispositivo.
+2. Cambiar a **su propio frontend** y registrar el equipo preparado con serie VIDEO-KATALINA-001. Mostrar el código generado y recargar su detalle para comprobar que persiste.
+3. Abrir Centros y conexiones → Listado de conexiones. Localizar la conexión de prueba preparada en **su base**, pulsar Editar capacidad, introducir el nuevo valor y Guardar capacidad. Mostrar el valor actualizado. No es necesario crear un centro o una conexión durante la grabación.
+4. Volver a SSMS y ejecutar **todo** consultas_video_parte_ii.sql con F5, sin seleccionar un SELECT aislado. @Serie debe ser VIDEO-KATALINA-001 o el sufijo realmente usado; @Conexion debe ser el ID de la conexión editada en su laptop.
+5. Mostrar las cuadrículas en orden: equipo con la misma serie/código y su categoría; capacidad coincidente con la interfaz; cuatro restricciones de ejemplo; conteo de la serie igual a 1. La consulta relaciona tablas de su base, no datos de Katty o Gabriel.
+6. En las restricciones, señalar PRIMARY_KEY_CONSTRAINT, FOREIGN_KEY_CONSTRAINT, UNIQUE_CONSTRAINT y CHECK_CONSTRAINT. Explicar una función de cada una; no leer todos los nombres técnicos.
+
+### Diálogo continuo
+
+> Mi aporte fue la base de datos, implementada en SQL Server local. Organicé las tablas, las claves primarias y foráneas, las relaciones y las restricciones de integridad.
 >
-> También podemos actualizar información: aquí modifico la capacidad de una conexión. El sistema comprueba las reservas y registra el cambio en auditoría. Para las bajas, este movimiento de prueba se anula conservando su historial. Así protegemos la trazabilidad.
-
-## 2:50–4:15 — Katalina: base de datos y persistencia
-
-**Pantalla:** SSMS, instancia local y base ecoraee_cloud. Ejecutar las consultas preparadas: equipo por la misma serie, conteo de esa serie, capacidad actualizada y movimiento anulado. Mostrar brevemente las claves/restricciones si queda tiempo.
-
-> Mi aporte fue la base de datos, implementada en SQL Server local. Definí las tablas, las claves primarias y foráneas, las relaciones y las restricciones para conservar la integridad de la información.
+> Para mostrar la integración, registro un equipo desde el frontend de mi propia laptop y recargo su detalle. Después actualizo la capacidad de una conexión de prueba desde la aplicación.
 >
-> Por ejemplo, un dispositivo se relaciona con su categoría, sus evaluaciones y su historial. El número de serie es único, por eso no se permite guardar el mismo equipo dos veces.
+> Ahora consulto SQL Server. Aquí aparece la misma serie y el mismo código del equipo, relacionado con su categoría. Esta otra consulta muestra la capacidad que acabamos de actualizar. Así comprobamos que el frontend se comunica con el backend y que los cambios se guardan en la base de datos.
 >
-> Ahora consulto la serie que acabamos de registrar desde la interfaz. Aquí aparece el equipo con su código y fecha. El conteo muestra un solo registro, aunque intentamos repetirlo.
+> Las claves identifican los registros y sus relaciones; las restricciones impiden series duplicadas y valores fuera de los permitidos. También utilizamos información ficticia para probar los procesos.
 >
-> Esta otra consulta muestra la capacidad que actualizamos, y la siguiente conserva el movimiento con estado Anulado. Esto demuestra que las operaciones de la aplicación se reflejan en la base de datos. También incorporamos datos ficticios para probar los procesos sin depender de servicios en la nube.
+> Con esto mostramos EcoRAEE Cloud integrado y funcionando localmente, como base para una futura etapa en AWS.
 
-## 4:15–4:35 — Katty: consulta después de recargar
+## Alcance y comprobación antes de entregar
 
-**Pantalla:** volver al detalle del dispositivo recién creado y recargar. Debe conservar el mismo código y los datos. Si no se guardó el enlace, buscarlo en Dispositivos.
-
-> Al recargar la aplicación, el equipo conserva los mismos datos y el mismo código. La información se recupera mediante la API desde SQL Server; no depende solamente de lo que estaba visible en el formulario.
-
-## 4:35–4:40 — Gabriel: cierre
-
-> EcoRAEE integra los tres componentes localmente y conserva la trazabilidad.
-
-## Control del tiempo y de lo que se afirma
-
-- Reservar los últimos 20 segundos hasta el límite de cinco minutos para demoras o transiciones. Ensayar con cronómetro; los tiempos son una pauta, no una duración garantizada de lectura.
-- Hablar mientras se ejecutan las acciones. Evitar explicar cada campo o leer código en voz alta.
-- Si el recorrido excede el tiempo, reducir la explicación de módulos y dejar solo la petición 201 en Network. Mantener la creación, la actualización, la consulta SQL y la intervención de cada integrante.
-- Si no se llega a ejecutar la anulación, cambiar la frase por «Las bajas se manejan mediante anulación y desactivación»; no decir que se anuló algo que no se mostró.
-- Mostrar una base local; GitHub sirve para compartir el código del equipo y no equivale a desplegar la aplicación o alojar su base de datos.
-- Las pruebas recientes del repositorio pasaron: 40 del frontend y 155 del backend incluyendo dos integraciones dirigidas. No afirmar que se verificó AWS, S3, un teléfono físico o todas las combinaciones posibles.
-- Exportar un único archivo MP4 cuya duración final sea menor o igual a 5:00. No incluir estos preparativos dentro de la grabación.
+- La creación se demuestra en frontend y Swagger, la consulta en API y SQL, y la actualización desde la interfaz y su consulta SQL posterior.
+- La anulación opcional demuestra una baja lógica. No hay un endpoint DELETE para eliminar físicamente dispositivos o lotes; no presentar la anulación como un DELETE físico.
+- Los resultados 201/409/422 descritos son los esperados por el código revisado. Solo afirmar en el video los que se obtengan al ejecutar la demostración en cada laptop.
+- El SQL adjunto es de solo lectura. No recrear tablas ni volver a ejecutar el esquema completo durante el video.
+- Ensayar el recorrido entero hablando mientras se hacen los clics. Si falta tiempo, retirar la baja opcional y su frase, reducir el recorrido del menú y mostrar solo las cuadrículas necesarias. Mantener la integración de Katalina y la intervención de los tres integrantes.
+- No anunciar 4:40 como duración garantizada: comprobar que el MP4 final no supere 5:00, incluyendo cambios de integrante y transiciones.
+- Cada integrante adapta «mi aporte» al trabajo que realmente realizó. La instalación local y los datos de los otros equipos no se dan por verificados desde esta laptop.

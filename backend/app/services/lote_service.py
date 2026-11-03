@@ -3,7 +3,7 @@ from ..db import transaccion
 from ..domain import lote as dl
 from ..domain.errors import ConflictoError, NoEncontradoError, ReglaNegocioError
 from ..domain.permisos import exigir_permiso
-from ..persistence import lotes as repo
+from ..persistence import auditoria, lotes as repo
 from ..security import Actor
 from . import estado_service
 
@@ -22,6 +22,28 @@ def crear_lote(actor: Actor, ids_dispositivos: list) -> dict:
         repo.agregar_dispositivos(s, id_lote, sorted(ids_dispositivos))
     return {"id_lote": id_lote, "codigo_lote": codigo, "estado_lote": "REGISTRADO",
             "total_dispositivos": len(ids_dispositivos)}
+
+
+def eliminar_lote(actor: Actor, id_lote: int) -> dict:
+    exigir_permiso(actor.roles, "lote:eliminar")
+    with transaccion() as s:
+        # El mismo bloqueo de crear_solicitud serializa ambas operaciones sobre este lote.
+        lote = repo.obtener_lote(s, id_lote, bloquear=True)
+        if lote is None or lote["id_organizacion"] != actor.id_organizacion:
+            raise NoEncontradoError("Lote no encontrado")
+        # Limite de la eliminacion: solo REGISTRADO y sin solicitud; el flujo iniciado se conserva.
+        if lote["estado_lote"] != "REGISTRADO":
+            raise ConflictoError("Solo se puede eliminar un lote en estado REGISTRADO")
+        if repo.lote_tiene_solicitud(s, id_lote):
+            raise ConflictoError("No se puede eliminar un lote que ya tiene una solicitud")
+        ids = repo.dispositivos_de_lote(s, id_lote)
+        resultado = {"id_lote": id_lote, "eliminado": True, "dispositivos_liberados": len(ids)}
+        repo.eliminar_lote(s, id_lote)
+        auditoria.registrar(s, "lote", "DELETE", id_lote,
+                            {"codigo_lote": lote["codigo_lote"], "estado_lote": lote["estado_lote"],
+                             "id_organizacion": lote["id_organizacion"], "total_dispositivos": len(ids),
+                             "ids_dispositivos": ids}, None, actor.id_usuario)
+        return resultado
 
 
 def crear_solicitud(actor: Actor, id_lote: int, modalidad: str, zona_referencial: str) -> dict:

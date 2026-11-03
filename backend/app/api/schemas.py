@@ -55,6 +55,12 @@ class LoteOut(BaseModel):
     total_dispositivos: int
 
 
+class LoteEliminadoOut(BaseModel):
+    id_lote: int
+    eliminado: bool
+    dispositivos_liberados: int
+
+
 class SolicitudIn(BaseModel):
     id_lote: int
     modalidad: Literal["RECOLECCION", "ENTREGA_DIRECTA"]

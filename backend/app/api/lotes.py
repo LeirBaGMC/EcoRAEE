@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 
 from ..security import Actor, get_current_actor
 from ..services import lote_service
-from .schemas import (LoteDetalle, LoteIn, LoteOut, RecoleccionIn, RecoleccionOut, SolicitudesPagina, SolicitudIn,
+from .schemas import (LoteDetalle, LoteEliminadoOut, LoteIn, LoteOut, RecoleccionIn, RecoleccionOut, SolicitudesPagina, SolicitudIn,
                       SolicitudOut)
 
 router = APIRouter(tags=["lotes y solicitudes"])
@@ -23,6 +23,11 @@ def crear_solicitud(datos: SolicitudIn, actor: Actor = Depends(get_current_actor
 @router.get("/lotes/{id_lote}", response_model=LoteDetalle)
 def obtener_lote(id_lote: int, actor: Actor = Depends(get_current_actor)):
     return lote_service.obtener_lote(actor, id_lote)
+
+
+@router.delete("/lotes/{id_lote}", response_model=LoteEliminadoOut, status_code=200)
+def eliminar_lote(id_lote: int, actor: Actor = Depends(get_current_actor)):
+    return lote_service.eliminar_lote(actor, id_lote)
 
 
 @router.get("/solicitudes", response_model=SolicitudesPagina)
