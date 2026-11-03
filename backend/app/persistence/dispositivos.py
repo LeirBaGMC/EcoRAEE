@@ -52,14 +52,37 @@ _FROM = ("FROM dispositivo d "
          "LEFT JOIN v_dispositivo_ubicacion_actual u ON u.id_dispositivo = d.id_dispositivo "
          "LEFT JOIN centro c ON c.id_centro = u.id_centro ")
 
+_DETALLE_FROM = (_FROM +
+    "JOIN categoria_dispositivo cat ON cat.id_categoria = d.id_categoria "
+    "LEFT JOIN dispositivo_individual di ON di.id_dispositivo = d.id_dispositivo "
+    "LEFT JOIN dispositivo_granel dg ON dg.id_dispositivo = d.id_dispositivo "
+    "OUTER APPLY (SELECT TOP 1 ev.fecha_hora, ev.diagnostico, cl.nombre_clasificacion, cl.permite_asignacion "
+    "FROM evaluacion_tecnica ev JOIN clasificacion cl ON cl.id_clasificacion = ev.id_clasificacion "
+    "WHERE ev.id_dispositivo = d.id_dispositivo ORDER BY ev.nro_evaluacion DESC) ev "
+    "OUTER APPLY (SELECT TOP 1 t.id_tratamiento, t.tipo_tratamiento, t.resultado, t.fecha_inicio, t.fecha_fin "
+    "FROM tratamiento t WHERE t.id_dispositivo = d.id_dispositivo "
+    "ORDER BY t.fecha_inicio DESC, t.id_tratamiento DESC) t ")
+_COLUMNAS = (
+    "SELECT d.id_dispositivo, d.codigo_trazabilidad, d.tipo_registro, d.marca, d.modelo, d.condicion_declarada, "
+    "d.fecha_registro, e.estado_actual, u.id_centro, u.nombre_centro, d.id_categoria, cat.nombre_categoria, "
+    "di.numero_serie, dg.peso_kg, dg.cantidad_unidades, ev.nombre_clasificacion, ev.permite_asignacion, "
+    "ev.diagnostico, ev.fecha_hora AS ultima_evaluacion_fecha, t.id_tratamiento, t.tipo_tratamiento, "
+    "t.resultado, t.fecha_inicio, t.fecha_fin ")
+
+
+def _detalle(fila):
+    d = dict(fila)
+    t = {k: d.pop(k) for k in ("id_tratamiento", "tipo_tratamiento", "resultado", "fecha_inicio", "fecha_fin")}
+    d["ultimo_tratamiento"] = t if t["id_tratamiento"] is not None else None
+    return d
+
 
 def obtener_visible(sesion, id_dispositivo: int, id_org: int, todos: bool = False):
     """Devuelve el dispositivo solo si es de la organizacion del usuario o esta en un centro de ella."""
     r = sesion.execute(text(
-        "SELECT d.id_dispositivo, d.codigo_trazabilidad, d.tipo_registro, d.marca, d.modelo, d.condicion_declarada, "
-        "d.fecha_registro, e.estado_actual, u.id_centro, u.nombre_centro " + _FROM +
+        _COLUMNAS + _DETALLE_FROM +
         f"WHERE d.id_dispositivo = :id AND {_VISIBLE}"), {"id": id_dispositivo, "org": id_org, "todos": int(todos)}).mappings().first()
-    return dict(r) if r else None
+    return _detalle(r) if r else None
 
 
 def listar_visibles(sesion, id_org: int, estado, offset: int, limite: int, todos: bool = False):
@@ -67,10 +90,9 @@ def listar_visibles(sesion, id_org: int, estado, offset: int, limite: int, todos
     params = {"org": id_org, "estado": estado, "off": offset, "n": limite, "todos": int(todos)}
     total = sesion.execute(text(f"SELECT COUNT(*) {_FROM} WHERE {_VISIBLE}{filtro}"), params).scalar()
     filas = sesion.execute(text(
-        "SELECT d.id_dispositivo, d.codigo_trazabilidad, d.tipo_registro, d.marca, d.modelo, d.condicion_declarada, "
-        f"d.fecha_registro, e.estado_actual, u.id_centro, u.nombre_centro {_FROM} WHERE {_VISIBLE}{filtro} "
-        "ORDER BY d.id_dispositivo DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), params).mappings().all()
-    return total, [dict(f) for f in filas]
+        _COLUMNAS + _DETALLE_FROM + f"WHERE {_VISIBLE}{filtro} "
+        "ORDER BY d.fecha_registro DESC, d.id_dispositivo DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), params).mappings().all()
+    return total, [_detalle(f) for f in filas]
 
 
 def historial(sesion, id_dispositivo: int):

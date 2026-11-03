@@ -1,5 +1,6 @@
 """Administracion: usuarios y roles (M-02), red logistica (organizaciones, centros, conexiones), catalogos y auditoria."""
 import json
+from decimal import Decimal
 from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
@@ -11,6 +12,7 @@ from ..domain.permisos import exigir_permiso
 from ..persistence import admin as repo
 from ..persistence import auditoria
 from ..persistence import red
+from ..persistence import movimientos
 from ..security import Actor, hash_password
 
 TIPOS_ACTOR = ("GENERADOR", "OPERADOR", "REACONDICIONADOR", "RECICLADOR", "BENEFICIARIO", "COORDINADOR")
@@ -170,6 +172,32 @@ def listar_conexiones(actor: Actor) -> list:
     exigir_permiso(actor.roles, "red:ver")
     with transaccion() as s:
         return red.listar_conexiones(s, actor.id_organizacion, "ADMINISTRADOR" in actor.roles)
+
+
+def actualizar_capacidad_conexion(actor: Actor, id_conexion: int, capacidad) -> dict:
+    """Solo capacidad. Serializa con programar y conserva todo compromiso mensual, incluso historico."""
+    exigir_permiso(actor.roles, "red:gestionar")
+    capacidad = Decimal(str(capacidad))
+    if not capacidad.is_finite() or capacidad < 0 or capacidad > Decimal("999999999999.99") or capacidad != capacidad.quantize(Decimal("0.01")):
+        raise ReglaNegocioError("La capacidad debe ser no negativa, con hasta dos decimales y catorce digitos")
+    with transaccion() as s:
+        # Es el mismo bloqueo UPDLOCK, HOLDLOCK de la programacion RN-05.
+        con = movimientos.conexion_para_programar(s, id_conexion)
+        if con is None:
+            raise NoEncontradoError("Conexion no encontrada")
+        # Administrador gestiona la red global; cualquier futuro rol gestor conserva su alcance.
+        if "ADMINISTRADOR" not in actor.roles and actor.id_organizacion not in (con["org_origen"], con["org_destino"]):
+            raise NoEncontradoError("Conexion no encontrada")
+        comprometido = Decimal(movimientos.maximo_comprometido_por_periodo(s, id_conexion, con["unidad_capacidad"]))
+        if capacidad < comprometido:
+            raise ReglaNegocioError(
+                f"La capacidad no puede ser menor que {comprometido} {con['unidad_capacidad']} ya comprometidos en un periodo mensual")
+        anterior = Decimal(con["capacidad_por_periodo"])
+        if capacidad != anterior:
+            red.actualizar_capacidad_conexion(s, id_conexion, capacidad)
+            auditoria.registrar(s, "conexion_logistica", "UPDATE", id_conexion,
+                                {"capacidad_por_periodo": anterior}, {"capacidad_por_periodo": capacidad}, actor.id_usuario)
+        return {**con, "capacidad_por_periodo": capacidad}
 
 
 # ---------------- catalogos y auditoria ----------------

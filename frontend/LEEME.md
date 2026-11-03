@@ -81,8 +81,8 @@ Ocultar una pantalla es comodidad: la seguridad real la aplica el backend en cad
 
 ## 6. Pendientes del backend para mejorar la interfaz
 1. `GET /auth/me`: resuelto.
-2. No existe listado de tratamientos ni forma de saber el numero de tratamiento de un dispositivo: la pantalla pide el numero. Propuesta: `GET /tratamientos?id_dispositivo=`.
-3. El listado de dispositivos no trae la clasificacion tecnica: no se puede ocultar a los no recuperables en Asignaciones, el backend los rechaza con 422 (RN-04).
-4. `GET /dispositivos` no filtra por centro: Movimientos filtra en el navegador los primeros 100.
+2. Resuelto: `GET /tratamientos?pagina=&tamano=` lista tratamientos según alcance. El detalle de dispositivo incluye el último tratamiento; las respuestas de inicio y finalización incluyen fechas.
+3. Resuelto: los dispositivos incluyen clasificación, permite_asignacion y diagnóstico. Asignaciones descarta clasificaciones no asignables y muestra la identificación de la beneficiaria con RUC.
+4. Movimientos y los demás selectores completan la paginación antes de filtrar. `GET /dispositivos` aún no filtra por centro en servidor; eso queda como optimización, sin el recorte anterior de 100 registros.
 5. Las ejecuciones guardadas no devuelven la huella de datos ni la interpretacion (solo la ejecucion recien calculada).
-6. Cierres: la pantalla pide los numeros de tratamiento o asignacion; faltan listados para elegirlos.
+6. Cierres muestra requisitos y revisa el dispositivo, el soporte y la fecha antes de habilitar el envío. Conserva entrada por número y los listados de tratamientos/asignaciones para identificar los soportes.

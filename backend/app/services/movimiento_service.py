@@ -32,9 +32,17 @@ def _movimiento_visible(s, id_mov: int, actor: Actor, solo_origen: bool, bloquea
 
 
 def _resumen(m: dict, repetido: bool = False) -> dict:
-    return {"id_movimiento": m["id_movimiento"], "codigo_movimiento": m["codigo_movimiento"],
+    res = {"id_movimiento": m["id_movimiento"], "codigo_movimiento": m["codigo_movimiento"],
             "tipo_movimiento": m["tipo_movimiento"], "estado_movimiento": m["estado_movimiento"],
             "id_conexion": m["id_conexion"], "fecha_despacho": m["fecha_despacho"], "repetido": repetido}
+    for campo in ("id_centro_origen", "id_centro_destino", "nombre_centro_origen", "nombre_centro_destino",
+                  "nombre_responsable", "cantidad_total", "unidad_capacidad"):
+        if campo in m:
+            res[campo] = m[campo]
+    res["id_responsable"] = m.get("id_usuario")
+    res["cantidad"] = m.get("cantidad_total")
+    res["unidad"] = m.get("unidad_capacidad")
+    return res
 
 
 def _huella(conexion, tipo, fecha, items):

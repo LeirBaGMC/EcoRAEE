@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from ..db import transaccion
 from ..domain import ciclo as dc
 from ..domain.errors import ConflictoError, NoEncontradoError, ReglaNegocioError
-from ..domain.permisos import exigir_permiso
+from ..domain.permisos import PERMISOS, exigir_permiso
 from ..persistence import auditoria, ciclo as repo
 from ..persistence import dispositivos as repo_d
 from ..persistence import movimientos as repo_m
@@ -43,7 +43,7 @@ def iniciar_tratamiento(actor: Actor, id_dispositivo: int, tipo: str) -> dict:
         if dc.inicio_cambia_estado(estado):
             estado_service.transicionar(s, id_dispositivo, "EN_TRATAMIENTO", actor.id_usuario, f"Tratamiento {id_t}")
         auditoria.registrar(s, "tratamiento", "INSERT", id_t, None, {"tipo": tipo, "dispositivo": id_dispositivo}, actor.id_usuario)
-    return {"id_tratamiento": id_t, "id_dispositivo": id_dispositivo, "tipo_tratamiento": tipo, "resultado": "EN_CURSO"}
+        return repo.obtener_tratamiento(s, id_t)
 
 
 def finalizar_tratamiento(actor: Actor, id_tratamiento: int, resultado: str) -> dict:
@@ -61,12 +61,27 @@ def finalizar_tratamiento(actor: Actor, id_tratamiento: int, resultado: str) -> 
         if nuevo:
             estado_service.transicionar(s, t["id_dispositivo"], nuevo, actor.id_usuario, f"Tratamiento {id_tratamiento} {resultado}")
         auditoria.registrar(s, "tratamiento", "UPDATE", id_tratamiento, {"resultado": "EN_CURSO"}, {"resultado": resultado}, actor.id_usuario)
-    return {"id_tratamiento": id_tratamiento, "id_dispositivo": t["id_dispositivo"],
-            "tipo_tratamiento": t["tipo_tratamiento"], "resultado": resultado}
+        return repo.obtener_tratamiento(s, id_tratamiento)
+
+
+def _exigir_lectura_tratamiento(actor: Actor) -> None:
+    # Cerrar requiere consultar el soporte; la lectura administrativa ya existe en consultas globales.
+    if "ADMINISTRADOR" not in actor.roles and not any("cierre:registrar" in PERMISOS.get(r, set()) for r in actor.roles):
+        exigir_permiso(actor.roles, "tratamiento:ver")
+
+
+def listar_tratamientos(actor: Actor, pagina: int, tamano: int) -> dict:
+    _exigir_lectura_tratamiento(actor)
+    if pagina < 1 or tamano < 1 or tamano > 100:
+        raise ReglaNegocioError("pagina >= 1 y tamano entre 1 y 100")
+    with transaccion() as s:
+        total, filas = repo.listar_tratamientos(s, actor.id_organizacion, (pagina - 1) * tamano, tamano,
+                                               todos="ADMINISTRADOR" in actor.roles)
+    return {"items": filas, "total": total, "pagina": pagina, "tamano": tamano}
 
 
 def obtener_tratamiento(actor: Actor, id_tratamiento: int) -> dict:
-    exigir_permiso(actor.roles, "tratamiento:ver")
+    _exigir_lectura_tratamiento(actor)
     with transaccion() as s:
         t = repo.obtener_tratamiento(s, id_tratamiento)
         if t is None:

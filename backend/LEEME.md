@@ -64,7 +64,7 @@ Errores que debes ver a proposito: repetir la recepcion (409), evaluar con op1 (
 asignar un NO_RECUPERABLE (422), pedir mas unidades que la capacidad de la conexion (422), token falso (401).
 id_clasificacion: 1 REUTILIZABLE, 2 REPARABLE, 3 RECICLABLE, 4 NO_RECUPERABLE.
 
-Otros archivos: CONTRATO_API.md (guia de endpoints para el frontend) y TRAZABILIDAD.md (reglas -> codigo -> prueba, y que esta verificado).
+Otros archivos: ../mds/CONTRATO_API.md (guía de endpoints para el frontend) y ../mds/TRAZABILIDAD.md (reglas -> código -> prueba, y qué está verificado).
 
 ## 7. Pruebas
   Sin base de datos:      python -m unittest discover -s tests -t .

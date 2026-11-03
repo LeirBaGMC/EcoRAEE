@@ -16,9 +16,26 @@ def crear_tratamiento(sesion, tipo: str, id_dispositivo: int) -> int:
 
 def obtener_tratamiento(sesion, id_tratamiento: int, bloquear: bool = False):
     hint = "WITH (UPDLOCK)" if bloquear else ""
-    r = sesion.execute(text(f"SELECT id_tratamiento, tipo_tratamiento, fecha_inicio, fecha_fin, resultado, id_dispositivo "
-                            f"FROM tratamiento {hint} WHERE id_tratamiento = :i"), {"i": id_tratamiento}).mappings().first()
+    r = sesion.execute(text(
+        "SELECT t.id_tratamiento, t.tipo_tratamiento, t.fecha_inicio, t.fecha_fin, t.resultado, t.id_dispositivo, "
+        "d.codigo_trazabilidad, d.marca, d.modelo "
+        f"FROM tratamiento t {hint} JOIN dispositivo d ON d.id_dispositivo = t.id_dispositivo "
+        "WHERE t.id_tratamiento = :i"), {"i": id_tratamiento}).mappings().first()
     return dict(r) if r else None
+
+
+def listar_tratamientos(sesion, id_org: int, offset: int, limite: int, todos: bool = False):
+    base = ("FROM tratamiento t JOIN dispositivo d ON d.id_dispositivo = t.id_dispositivo "
+            "LEFT JOIN v_dispositivo_ubicacion_actual u ON u.id_dispositivo = d.id_dispositivo "
+            "LEFT JOIN centro c ON c.id_centro = u.id_centro "
+            "WHERE (:todos = 1 OR d.id_organizacion = :org OR c.id_organizacion = :org)")
+    p = {"org": id_org, "todos": int(todos), "off": offset, "n": limite}
+    total = sesion.execute(text(f"SELECT COUNT(*) {base}"), p).scalar()
+    filas = sesion.execute(text(
+        "SELECT t.id_tratamiento, t.tipo_tratamiento, t.fecha_inicio, t.fecha_fin, t.resultado, t.id_dispositivo, "
+        f"d.codigo_trazabilidad, d.marca, d.modelo {base} "
+        "ORDER BY t.fecha_inicio DESC, t.id_tratamiento DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
+    return total, [dict(f) for f in filas]
 
 
 def finalizar_tratamiento(sesion, id_tratamiento: int, resultado: str) -> None:
@@ -64,12 +81,16 @@ def listar_asignaciones(sesion, id_org: int, como_beneficiaria: bool, offset: in
         join = ("LEFT JOIN v_dispositivo_ubicacion_actual u ON u.id_dispositivo = d.id_dispositivo "
                 "LEFT JOIN centro c ON c.id_centro = u.id_centro ")
         donde = "(d.id_organizacion = :org OR c.id_organizacion = :org)"
-    base = f"FROM asignacion_beneficiario a JOIN dispositivo d ON d.id_dispositivo = a.id_dispositivo {join}WHERE {donde}"
+    base = ("FROM asignacion_beneficiario a JOIN dispositivo d ON d.id_dispositivo = a.id_dispositivo "
+            "JOIN organizacion o ON o.id_organizacion = a.id_organizacion "
+            "LEFT JOIN dispositivo_individual di ON di.id_dispositivo = d.id_dispositivo "
+            f"{join}WHERE {donde}")
     p = {"org": id_org, "off": offset, "n": limite}
     total = sesion.execute(text(f"SELECT COUNT(*) {base}"), p).scalar()
     filas = sesion.execute(text(
-        "SELECT a.id_asignacion, a.fecha_asignacion, a.fecha_entrega, a.finalidad, a.id_dispositivo, a.id_organizacion "
-        f"{base} ORDER BY a.id_asignacion DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
+        "SELECT a.id_asignacion, a.fecha_asignacion, a.fecha_entrega, a.finalidad, a.id_dispositivo, a.id_organizacion, "
+        "d.codigo_trazabilidad, d.marca, d.modelo, di.numero_serie, o.nombre AS nombre_organizacion, o.ruc AS ruc_organizacion "
+        f"{base} ORDER BY a.fecha_asignacion DESC, a.id_asignacion DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
     return total, [dict(f) for f in filas]
 
 

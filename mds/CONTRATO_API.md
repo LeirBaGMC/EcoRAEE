@@ -3,6 +3,17 @@
 Estado: implementado y probado localmente en los casos de integracion contra SQL Server (ver TRAZABILIDAD.md). La fuente exacta es siempre /docs (OpenAPI). S3 y despliegue cloud siguen pendientes.
 Todos los datos de ejemplo son sinteticos.
 
+## Ampliaciones de la auditoría (2026-11-02)
+
+- `GET /dispositivos` y `GET /dispositivos/{id}` añaden `nombre_categoria`, `numero_serie`, `peso_kg`, `cantidad_unidades`, `nombre_clasificacion`, `permite_asignacion`, `diagnostico`, `ultima_evaluacion_fecha` y `ultimo_tratamiento` con resultado/fechas. La serie admite hasta 60 caracteres, igual que SQL Server.
+- `GET /solicitudes` añade `fecha_programada` y `fecha_ejecucion`. Ejecutar la recolección no cambia PROGRAMADA a otro estado de solicitud: la recepción la lleva a ATENDIDA. Ocultar el botón de ejecución si ya tiene `fecha_ejecucion`; el filtro correcto usa ATENDIDA, no RECIBIDA.
+- `GET /tratamientos?pagina=&tamano=` devuelve `{items,total,pagina,tamano}`. Lee el reacondicionador según alcance, el coordinador autorizado para cierres y el administrador para consulta global. Esta lectura no concede permiso para crear/finalizar. Los POST de tratamiento ahora devuelven el detalle completo con fechas.
+- Movimientos añaden `nombre_centro_origen`, `nombre_centro_destino`, `nombre_responsable`, `cantidad_total` y `unidad_capacidad`. En UND se cuentan las unidades físicas del granel y 1 por individual; en KG se usa el peso despachado con el respaldo ya definido para granel.
+- Asignaciones añaden identificación de equipo y `nombre_organizacion`/`ruc_organizacion`. Confirmar sigue exigiendo rol beneficiaria y pertenencia a la organización destinataria; lectura global no autoriza confirmar una entrega ajena.
+- `PUT /conexiones/{id}/capacidad` recibe únicamente `{"capacidad_por_periodo":"10.00"}`. Exige `red:gestionar`, conserva unidad y ruta, rechaza campos extra y audita el cambio. Usa el mismo bloqueo de conexión que programar un movimiento. No permite bajar bajo el máximo comprometido en cualquier mes registrado, incluidos periodos históricos y movimientos CERRADO; ANULADO no cuenta. Esta es una validación conservadora, sin versionado de capacidades por periodo.
+
+La fuente completa de parámetros y respuestas continúa siendo OpenAPI en `/docs`.
+
 ## Convenciones
 - Autenticacion: `POST /auth/login {"nombre_usuario","contrasena"}` -> `{"access_token","token_type":"bearer"}`. Enviar `Authorization: Bearer <token>`. Dura 60 min.
 - Paginacion: `?pagina=1&tamano=20` (tamano maximo 100). Respuesta `{items,total,pagina,tamano}`.
@@ -28,7 +39,8 @@ Todos los datos de ejemplo son sinteticos.
 | Recepcion | POST /recepciones | OPERADOR_CENTRO |
 | Movimientos | POST /movimientos; GET /movimientos; GET /movimientos/{id}; POST .../autorizar; .../anular; .../cerrar | COORDINADOR_LOGISTICO |
 | | POST /movimientos/{id}/despachar | OPERADOR_CENTRO |
-| Tratamientos | POST /tratamientos; POST /tratamientos/{id}/finalizar; GET /tratamientos/{id} | REACONDICIONADOR_RECICLADOR |
+| Tratamientos | POST /tratamientos; POST /tratamientos/{id}/finalizar | REACONDICIONADOR_RECICLADOR |
+| | GET /tratamientos; GET /tratamientos/{id} | REACONDICIONADOR_RECICLADOR; COORDINADOR para soporte del cierre; ADMIN lectura global |
 | Asignaciones | POST /asignaciones; GET /asignaciones | COORDINADOR_LOGISTICO (crear); ENTIDAD_BENEFICIARIA (ver propias) |
 | | POST /asignaciones/{id}/confirmar | ENTIDAD_BENEFICIARIA |
 | Cierre | POST /cierres; GET /dispositivos/{id}/cierre | COORDINADOR_LOGISTICO |

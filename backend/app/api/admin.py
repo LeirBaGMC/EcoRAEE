@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 
 from ..security import Actor, get_current_actor
 from ..services import admin_service as svc
-from .schemas import (ActivoIn, AuditoriaPagina, CentroIn, CentroOut, ConexionIn, ConexionOut, OrganizacionesPagina,
+from .schemas import (ActivoIn, AuditoriaPagina, CapacidadConexionIn, CentroIn, CentroOut, ConexionIn, ConexionOut, OrganizacionesPagina,
                       OrganizacionIn, OrganizacionOut, RolesIn, UsuarioIn, UsuarioOut, UsuariosPagina)
 
 router = APIRouter(tags=["administracion"])
@@ -65,6 +65,11 @@ def crear_conexion(d: ConexionIn, actor: Actor = Depends(get_current_actor)):
 @router.get("/conexiones", response_model=List[ConexionOut])
 def listar_conexiones(actor: Actor = Depends(get_current_actor)):
     return svc.listar_conexiones(actor)
+
+
+@router.put("/conexiones/{id_conexion}/capacidad", response_model=ConexionOut)
+def actualizar_capacidad_conexion(id_conexion: int, d: CapacidadConexionIn, actor: Actor = Depends(get_current_actor)):
+    return svc.actualizar_capacidad_conexion(actor, id_conexion, d.capacidad_por_periodo)
 
 
 @router.get("/catalogos")

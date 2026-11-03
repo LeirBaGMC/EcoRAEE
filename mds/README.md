@@ -7,9 +7,13 @@ Proyecto de trazabilidad de residuos electrónicos: registro, recepción, evalua
 - `backend/`: API FastAPI, reglas de negocio, acceso a SQL Server y pruebas.
 - `frontend/`: aplicación React con Vite.
 - `backend/ecoraee_cloud_sqlserver.sql`: esquema y catálogos iniciales de SQL Server.
-- `backend/CONTRATO_API.md`: endpoints, permisos y errores para desarrollar el frontend.
-- `backend/TRAZABILIDAD.md`: reglas y límites de verificación.
-- `backend/CAMBIOS_Y_CORRECCIONES.md`: correcciones documentadas del backend.
+- `mds/CONTRATO_API.md`: endpoints, permisos y errores para desarrollar el frontend.
+- `mds/TRAZABILIDAD.md`: reglas y límites de verificación.
+- `mds/CAMBIOS_Y_CORRECCIONES.md`: correcciones documentadas del backend.
+- `mds/CORRECCIONES_IMPLEMENTADAS.md`: correcciones y pruebas posteriores a la auditoría.
+- `mds/CUENTA_AUDITORIA_TEMPORAL.md`: acceso y recreación del usuario de demostración con siete roles.
+- `mds/GUION_VIDEO_PARTE_II.md`: diálogo de Katty, Gabriel y Katalina para el video local de máximo cinco minutos.
+- `mds/consultas_video_parte_ii.sql`: consultas de solo lectura para mostrar persistencia en SSMS.
 
 ## Preparar el backend en Windows
 
@@ -84,7 +88,7 @@ La integración carga `.env`, utiliza SQL Server real y agrega datos de prueba. 
 
 Verificaciones anteriores: 126 pruebas unitarias y 13 de integración aprobadas tras las correcciones de movimientos; posteriormente pasó una prueba adicional de `/auth/me`. La compilación del frontend también pasó. Esto no implica una revisión visual completa ni una validación de S3.
 
-Pendientes: recorrido visual y móvil, S3 y nube, mejoras de listados documentadas en `frontend/LEEME.md` y actualización de dependencias de desarrollo: npm reportó vulnerabilidades en Vite/esbuild. No aplicar actualizaciones mayores sin comprobar la compilación.
+Estado de auditoría actualizado: 40 pruebas del frontend y 155 del backend aprobadas, compilación correcta y revisión en navegador móvil/escritorio. Los pendientes y sus límites están en `mds/CORRECCIONES_IMPLEMENTADAS.md`. S3/nube no forman parte de esta entrega local; también quedan pruebas en teléfono físico y revisión de dependencias de desarrollo. No aplicar actualizaciones mayores sin comprobar la compilación.
 
 ## Qué no se comparte
 

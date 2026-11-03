@@ -18,7 +18,7 @@ def listar_organizaciones(s, offset, limite, tipo_actor=None):
     p = {"off": offset, "n": limite, "ta": tipo_actor}
     total = s.execute(text(f"SELECT COUNT(*) FROM organizacion o{filtro}"), p).scalar()
     filas = s.execute(text(f"SELECT o.id_organizacion, o.ruc, o.nombre, o.tipo_persona, o.ciudad FROM organizacion o{filtro} "
-                           "ORDER BY o.id_organizacion OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
+                           "ORDER BY o.nombre, o.ruc, o.id_organizacion OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
     return total, [dict(f) for f in filas]
 
 
@@ -35,7 +35,7 @@ def crear_centro(s, codigo, nombre, tipo, ciudad, capacidad, id_org) -> int:
 def listar_centros(s, id_org, todos: bool):
     filtro = "" if todos else "WHERE id_organizacion = :o"
     filas = s.execute(text(f"SELECT id_centro, codigo_centro, nombre, tipo_centro, ciudad, capacidad_almacenamiento, id_organizacion "
-                           f"FROM centro {filtro} ORDER BY id_centro"), {"o": id_org}).mappings().all()
+                           f"FROM centro {filtro} ORDER BY nombre, id_centro"), {"o": id_org}).mappings().all()
     return [dict(f) for f in filas]
 
 
@@ -43,6 +43,11 @@ def crear_conexion(s, origen, destino, capacidad, unidad) -> int:
     return s.execute(text("INSERT INTO conexion_logistica (id_centro_origen, id_centro_destino, capacidad_por_periodo, unidad_capacidad) "
                           "OUTPUT INSERTED.id_conexion VALUES (:o, :d, :c, :u)"),
                      {"o": origen, "d": destino, "c": capacidad, "u": unidad}).scalar()
+
+
+def actualizar_capacidad_conexion(s, id_conexion: int, capacidad) -> None:
+    s.execute(text("UPDATE conexion_logistica SET capacidad_por_periodo = :cap WHERE id_conexion = :i"),
+              {"cap": capacidad, "i": id_conexion})
 
 
 def centros_existen(s, ids) -> set:
@@ -60,7 +65,7 @@ def listar_conexiones(s, id_org, todos: bool, activas_unidad=None):
     filas = s.execute(text(
         "SELECT c.id_conexion, c.id_centro_origen, c.id_centro_destino, c.capacidad_por_periodo, c.unidad_capacidad, c.activa "
         "FROM conexion_logistica c JOIN centro co ON co.id_centro = c.id_centro_origen JOIN centro cd ON cd.id_centro = c.id_centro_destino "
-        f"{donde} ORDER BY c.id_conexion"), p).mappings().all()
+        f"{donde} ORDER BY co.nombre, cd.nombre, c.id_conexion"), p).mappings().all()
     return [dict(f) for f in filas]
 
 

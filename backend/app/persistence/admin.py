@@ -40,7 +40,7 @@ def listar_usuarios(s, offset, limite):
     total = s.execute(text("SELECT COUNT(*) FROM usuario")).scalar()
     filas = [dict(r) for r in s.execute(text(
         "SELECT id_usuario, correo, nombre_usuario, nombre_visible, activo, id_organizacion FROM usuario "
-        "ORDER BY id_usuario OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), {"off": offset, "n": limite}).mappings()]
+        "ORDER BY nombre_visible, nombre_usuario, id_usuario OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), {"off": offset, "n": limite}).mappings()]
     roles = roles_de_usuarios(s, [f["id_usuario"] for f in filas])
     for f in filas:
         f["roles"] = roles.get(f["id_usuario"], [])
@@ -49,5 +49,5 @@ def listar_usuarios(s, offset, limite):
 
 def catalogos(s) -> dict:
     q = lambda sql: [dict(r) for r in s.execute(text(sql)).mappings()]   # noqa: E731  (SQL fijo)
-    return {"clasificaciones": q("SELECT id_clasificacion, nombre_clasificacion, permite_asignacion FROM clasificacion ORDER BY id_clasificacion"),
-            "categorias": q("SELECT id_categoria, nombre_categoria, descripcion FROM categoria_dispositivo ORDER BY id_categoria")}
+    return {"clasificaciones": q("SELECT id_clasificacion, nombre_clasificacion, permite_asignacion FROM clasificacion ORDER BY nombre_clasificacion, id_clasificacion"),
+            "categorias": q("SELECT id_categoria, nombre_categoria, descripcion FROM categoria_dispositivo ORDER BY nombre_categoria, id_categoria")}

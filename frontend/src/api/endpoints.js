@@ -44,6 +44,7 @@ export const Ciclo = {
   iniciarTratamiento: (b) => api('POST', '/tratamientos', { body: b }),
   finalizarTratamiento: (id, resultado) => api('POST', `/tratamientos/${id}/finalizar`, { body: { resultado } }),
   tratamiento: (id) => api('GET', `/tratamientos/${id}`),
+  tratamientos: (p, t) => api('GET', '/tratamientos', { query: pag(p, t) }),
   crearAsignacion: (b) => api('POST', '/asignaciones', { body: b }),
   confirmarAsignacion: (id) => api('POST', `/asignaciones/${id}/confirmar`),
   asignaciones: (p, t) => api('GET', '/asignaciones', { query: pag(p, t) }),
@@ -86,5 +87,6 @@ export const Admin = {
   crearCentro: (b) => api('POST', '/centros', { body: b }),
   conexiones: () => api('GET', '/conexiones'),
   crearConexion: (b) => api('POST', '/conexiones', { body: b }),
+  capacidadConexion: (id, capacidad_por_periodo) => api('PUT', `/conexiones/${id}/capacidad`, { body: { capacidad_por_periodo } }),
   auditoria: (p, t, tabla, clave) => api('GET', '/auditoria', { query: pag(p, t, { tabla, clave }) }),
 };

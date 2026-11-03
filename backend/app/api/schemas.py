@@ -28,7 +28,7 @@ class DispositivoIn(BaseModel):
     condicion_declarada: Literal["ENCIENDE", "NO_ENCIENDE", "DANO_FISICO", "INCOMPLETO"]
     marca: Optional[str] = Field(default=None, max_length=60)
     modelo: Optional[str] = Field(default=None, max_length=60)
-    numero_serie: Optional[str] = Field(default=None, max_length=80)
+    numero_serie: Optional[str] = Field(default=None, max_length=60)
     peso_kg: Optional[Decimal] = None
     cantidad_unidades: Optional[int] = None
 
@@ -98,6 +98,14 @@ class EvaluacionOut(BaseModel):
     estado_actual: str
 
 
+class UltimoTratamiento(BaseModel):
+    id_tratamiento: int
+    tipo_tratamiento: str
+    resultado: str
+    fecha_inicio: datetime
+    fecha_fin: Optional[datetime] = None
+
+
 class DispositivoDetalle(BaseModel):
     id_dispositivo: int
     codigo_trazabilidad: str
@@ -109,6 +117,16 @@ class DispositivoDetalle(BaseModel):
     estado_actual: Optional[str] = None
     id_centro: Optional[int] = None
     nombre_centro: Optional[str] = None
+    id_categoria: Optional[int] = None
+    nombre_categoria: Optional[str] = None
+    numero_serie: Optional[str] = None
+    peso_kg: Optional[Decimal] = None
+    cantidad_unidades: Optional[int] = None
+    nombre_clasificacion: Optional[str] = None
+    permite_asignacion: Optional[bool] = None
+    diagnostico: Optional[str] = None
+    ultima_evaluacion_fecha: Optional[datetime] = None
+    ultimo_tratamiento: Optional[UltimoTratamiento] = None
 
 
 class DispositivosPagina(BaseModel):
@@ -151,12 +169,28 @@ class MovimientoOut(BaseModel):
     cantidad: Optional[Decimal] = None
     unidad: Optional[str] = None
     capacidad_restante_periodo: Optional[Decimal] = None
+    id_centro_origen: Optional[int] = None
+    id_centro_destino: Optional[int] = None
+    nombre_centro_origen: Optional[str] = None
+    nombre_centro_destino: Optional[str] = None
+    id_responsable: Optional[int] = None
+    nombre_responsable: Optional[str] = None
+    cantidad_total: Optional[Decimal] = None
+    unidad_capacidad: Optional[str] = None
 
 
 class ItemMovimientoOut(BaseModel):
     id_dispositivo: int
     peso_despachado_kg: Optional[Decimal] = None
     conforme: Optional[bool] = None
+    codigo_trazabilidad: Optional[str] = None
+    tipo_registro: Optional[str] = None
+    marca: Optional[str] = None
+    modelo: Optional[str] = None
+    numero_serie: Optional[str] = None
+    cantidad_unidades: Optional[int] = None
+    peso_kg: Optional[Decimal] = None
+    cantidad_capacidad: Optional[Decimal] = None
 
 
 class MovimientoDetalle(MovimientoOut):
@@ -211,6 +245,8 @@ class SolicitudItem(BaseModel):
     estado_solicitud: str
     zona_referencial: str
     fecha_solicitud: datetime
+    fecha_programada: Optional[datetime] = None
+    fecha_ejecucion: Optional[datetime] = None
     id_lote: int
 
 
@@ -238,6 +274,16 @@ class TratamientoOut(BaseModel):
     resultado: str
     fecha_inicio: Optional[datetime] = None
     fecha_fin: Optional[datetime] = None
+    codigo_trazabilidad: Optional[str] = None
+    marca: Optional[str] = None
+    modelo: Optional[str] = None
+
+
+class TratamientosPagina(BaseModel):
+    items: List[TratamientoOut]
+    total: int
+    pagina: int
+    tamano: int
 
 
 class AsignacionIn(BaseModel):
@@ -254,6 +300,12 @@ class AsignacionOut(BaseModel):
     finalidad: Optional[str] = None
     fecha_asignacion: Optional[datetime] = None
     fecha_entrega: Optional[datetime] = None
+    codigo_trazabilidad: Optional[str] = None
+    marca: Optional[str] = None
+    modelo: Optional[str] = None
+    numero_serie: Optional[str] = None
+    nombre_organizacion: Optional[str] = None
+    ruc_organizacion: Optional[str] = None
 
 
 class AsignacionesPagina(BaseModel):
@@ -527,6 +579,11 @@ class ConexionOut(BaseModel):
     capacidad_por_periodo: Decimal
     unidad_capacidad: str
     activa: bool
+
+
+class CapacidadConexionIn(BaseModel):
+    model_config = {"extra": "forbid"}
+    capacidad_por_periodo: Decimal = Field(ge=0, max_digits=14, decimal_places=2)
 
 
 class AuditoriaItem(BaseModel):

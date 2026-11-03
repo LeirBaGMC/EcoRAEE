@@ -108,9 +108,11 @@ def listar_solicitudes(sesion, id_org, estado, offset: int, limite: int):
     if estado:
         f.append("s.estado_solicitud = :estado"); p["estado"] = estado
     donde = ("WHERE " + " AND ".join(f)) if f else ""
-    base = f"FROM solicitud_recoleccion s JOIN lote l ON l.id_lote = s.id_lote {donde}"
+    base = ("FROM solicitud_recoleccion s JOIN lote l ON l.id_lote = s.id_lote "
+            f"LEFT JOIN recoleccion r ON r.id_solicitud = s.id_solicitud {donde}")
     total = sesion.execute(text(f"SELECT COUNT(*) {base}"), p).scalar()
     filas = sesion.execute(text(
-        "SELECT s.id_solicitud, s.codigo_solicitud, s.modalidad, s.estado_solicitud, s.zona_referencial, s.fecha_solicitud, s.id_lote "
-        f"{base} ORDER BY s.id_solicitud DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
+        "SELECT s.id_solicitud, s.codigo_solicitud, s.modalidad, s.estado_solicitud, s.zona_referencial, s.fecha_solicitud, s.id_lote, "
+        "r.fecha_programada, r.fecha_ejecucion "
+        f"{base} ORDER BY s.fecha_solicitud DESC, s.id_solicitud DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
     return total, [dict(x) for x in filas]

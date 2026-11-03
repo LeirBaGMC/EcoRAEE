@@ -3,9 +3,18 @@ from datetime import datetime
 
 from sqlalchemy import bindparam, text
 
+_CANTIDAD_ITEM = ("CASE WHEN c.unidad_capacidad = 'UND' THEN "
+                  "CASE WHEN dg.id_dispositivo IS NOT NULL THEN dg.cantidad_unidades ELSE 1 END "
+                  "ELSE COALESCE(md.peso_despachado_kg, dg.peso_kg, 0) END")
 _BASE = ("SELECT m.id_movimiento, m.codigo_movimiento, m.tipo_movimiento, m.estado_movimiento, m.fecha_despacho, "
          "m.fecha_recepcion, m.id_conexion, m.id_usuario, c.id_centro_origen, c.id_centro_destino, c.unidad_capacidad, "
-         "co.id_organizacion AS org_origen, cd.id_organizacion AS org_destino ")
+         "co.id_organizacion AS org_origen, cd.id_organizacion AS org_destino, "
+         "co.nombre AS nombre_centro_origen, cd.nombre AS nombre_centro_destino, ur.nombre_visible AS nombre_responsable, "
+         "(SELECT CASE WHEN c.unidad_capacidad = 'UND' "
+         "THEN COALESCE(SUM(CASE WHEN dg.id_dispositivo IS NOT NULL THEN dg.cantidad_unidades ELSE 1 END), 0) "
+         "ELSE COALESCE(SUM(COALESCE(md.peso_despachado_kg, dg.peso_kg)), 0) END FROM movimiento_dispositivo md "
+         "LEFT JOIN dispositivo_granel dg ON dg.id_dispositivo = md.id_dispositivo "
+         "WHERE md.id_movimiento = m.id_movimiento) AS cantidad_total ")
 
 
 def conexion_para_programar(sesion, id_conexion: int):
@@ -27,6 +36,19 @@ def comprometido(sesion, id_conexion: int, unidad: str, desde, hasta):
         "LEFT JOIN dispositivo_granel dg ON dg.id_dispositivo = md.id_dispositivo "
         "WHERE m.id_conexion = :c AND m.estado_movimiento IN ('PROGRAMADO','AUTORIZADO','EN_TRANSITO','CERRADO') "
         "AND CAST(m.fecha_despacho AS DATE) BETWEEN :d AND :h"), {"c": id_conexion, "d": desde, "h": hasta}).scalar()
+
+
+def maximo_comprometido_por_periodo(sesion, id_conexion: int, unidad: str):
+    """Mismo mes calendario, estados y unidades que RN-05; incluye compromisos historicos."""
+    suma = ("SUM(CASE WHEN dg.id_dispositivo IS NOT NULL THEN dg.cantidad_unidades ELSE 1 END)" if unidad == "UND"
+            else "SUM(COALESCE(md.peso_despachado_kg, dg.peso_kg, 0))")
+    return sesion.execute(text(
+        f"SELECT COALESCE(MAX(p.comprometido), 0) FROM (SELECT {suma} AS comprometido "
+        "FROM movimiento m JOIN movimiento_dispositivo md ON md.id_movimiento = m.id_movimiento "
+        "LEFT JOIN dispositivo_granel dg ON dg.id_dispositivo = md.id_dispositivo "
+        "WHERE m.id_conexion = :c AND m.estado_movimiento IN ('PROGRAMADO','AUTORIZADO','EN_TRANSITO','CERRADO') "
+        "AND m.fecha_despacho IS NOT NULL GROUP BY YEAR(m.fecha_despacho), MONTH(m.fecha_despacho)) p"),
+        {"c": id_conexion}).scalar()
 
 
 def info_dispositivos(sesion, ids):
@@ -71,6 +93,7 @@ def obtener(sesion, id_movimiento: int, bloquear: bool = False):
     r = sesion.execute(text(
         _BASE + f"FROM movimiento m {hint} JOIN conexion_logistica c ON c.id_conexion = m.id_conexion "
         "JOIN centro co ON co.id_centro = c.id_centro_origen JOIN centro cd ON cd.id_centro = c.id_centro_destino "
+        "JOIN usuario ur ON ur.id_usuario = m.id_usuario "
         "WHERE m.id_movimiento = :i"), {"i": id_movimiento}).mappings().first()
     return dict(r) if r else None
 
@@ -100,8 +123,13 @@ def huella_solicitud(sesion, id_movimiento: int):
 
 def items(sesion, id_movimiento: int):
     return [dict(r) for r in sesion.execute(text(
-        "SELECT id_dispositivo, peso_despachado_kg, conforme FROM movimiento_dispositivo "
-        "WHERE id_movimiento = :m ORDER BY id_dispositivo"), {"m": id_movimiento}).mappings()]
+        "SELECT md.id_dispositivo, md.peso_despachado_kg, md.conforme, d.codigo_trazabilidad, d.tipo_registro, d.marca, d.modelo, "
+        "di.numero_serie, dg.cantidad_unidades, dg.peso_kg, " + _CANTIDAD_ITEM + " AS cantidad_capacidad "
+        "FROM movimiento_dispositivo md JOIN movimiento m ON m.id_movimiento = md.id_movimiento "
+        "JOIN conexion_logistica c ON c.id_conexion = m.id_conexion JOIN dispositivo d ON d.id_dispositivo = md.id_dispositivo "
+        "LEFT JOIN dispositivo_individual di ON di.id_dispositivo = d.id_dispositivo "
+        "LEFT JOIN dispositivo_granel dg ON dg.id_dispositivo = d.id_dispositivo "
+        "WHERE md.id_movimiento = :m ORDER BY d.codigo_trazabilidad, d.id_dispositivo"), {"m": id_movimiento}).mappings()]
 
 
 def cambiar_estado(sesion, id_movimiento: int, nuevo: str, fecha_recepcion=None) -> None:
@@ -137,8 +165,9 @@ def listar_visibles(sesion, id_org: int, estado, offset: int, limite: int, todos
     filtro = " AND m.estado_movimiento = :estado" if estado else ""
     base = ("FROM movimiento m JOIN conexion_logistica c ON c.id_conexion = m.id_conexion "
             "JOIN centro co ON co.id_centro = c.id_centro_origen JOIN centro cd ON cd.id_centro = c.id_centro_destino "
+            "JOIN usuario ur ON ur.id_usuario = m.id_usuario "
             f"WHERE (:todos = 1 OR co.id_organizacion = :org OR cd.id_organizacion = :org){filtro}")
     p = {"org": id_org, "estado": estado, "off": offset, "n": limite, "todos": int(todos)}
     total = sesion.execute(text(f"SELECT COUNT(*) {base}"), p).scalar()
-    filas = sesion.execute(text(_BASE + base + " ORDER BY m.id_movimiento DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
+    filas = sesion.execute(text(_BASE + base + " ORDER BY m.fecha_despacho DESC, m.id_movimiento DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
     return total, [dict(f) for f in filas]

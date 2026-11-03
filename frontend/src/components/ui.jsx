@@ -1,8 +1,9 @@
 import { useId, useState } from 'react';
 import { ChevronRight, Search } from 'lucide-react';
-import { errorCampo } from '../lib/hooks.js';
+import { errorCampo, normalizar } from '../lib/hooks.js';
 import { texto } from '../lib/format.js';
 import { conTildes } from '../lib/acentos.js';
+import './auditoria.css';
 
 export function Alerta({ tipo = 'info', titulo, children, accion }) {
   const rol = tipo === 'error' ? 'alert' : 'status';
@@ -19,9 +20,9 @@ export function Alerta({ tipo = 'info', titulo, children, accion }) {
 // Muestra un ApiError con ayuda segun el codigo HTTP.
 export function ErrorApi({ error, ayuda }) {
   if (!error) return null;
-  const consejo = ayuda?.[error.status]
-    || (error.status === 0 ? 'Revisa tu conexión y vuelve a intentar.' : '')
-    || (error.status === 403 ? 'Si crees que deberias poder hacerlo, pide a un administrador revisar tu rol.' : '');
+  const comparar = (s) => normalizar(s).replace(/[^a-z0-9]+/g, ' ').trim();
+  const sugerencia = ayuda?.[error.status] || '';
+  const consejo = sugerencia && !comparar(error.message).includes(comparar(sugerencia)) ? sugerencia : '';
   return <Alerta tipo="error" titulo={error.status ? `No se pudo completar (${error.status})` : 'Sin conexión'}>{conTildes(String(error.message))}{consejo ? ` ${consejo}` : ''}</Alerta>;
 }
 
@@ -36,6 +37,7 @@ export function Vacio({ children }) {
 export function Carga({ estado, vacio, children }) {
   if (estado.cargando && !estado.data) return <Cargando />;
   if (estado.error) {
+    if (estado.error.status === 403) return <Alerta tipo="aviso" titulo="Sin acceso">Tu cuenta no tiene permiso para consultar esta información. <a href="#/">Volver al inicio</a></Alerta>;
     return (
       <div>
         <ErrorApi error={estado.error} />
@@ -48,11 +50,11 @@ export function Carga({ estado, vacio, children }) {
   return children(estado.data);
 }
 
-export function Boton({ enviando, children, tipo = 'primario', ...r }) {
+export function Boton({ enviando, children, tipo = 'primario', ayudaDeshabilitado, ...r }) {
   return (
-    <button type="button" className={`btn btn-${tipo === 'primario' ? 'pri' : tipo === 'peligro' ? 'pel' : 'sec'}`} disabled={enviando || r.disabled} aria-busy={enviando || undefined} {...r}>
+    <><button {...r} type={r.type || 'button'} className={r.className || `btn btn-${tipo === 'primario' ? 'pri' : tipo === 'peligro' ? 'pel' : 'sec'}`} disabled={!!enviando || !!r.disabled} aria-busy={enviando || undefined}>
       {enviando ? 'Enviando...' : children}
-    </button>
+    </button>{r.disabled && !enviando && ayudaDeshabilitado && <p className="nota" role="status">{ayudaDeshabilitado}</p>}</>
   );
 }
 
@@ -84,15 +86,25 @@ export function Area({ label, ayuda, error, errorApi, requerido, ...r }) {
   return <Envoltura id={id} label={label} ayuda={ayuda} error={e} requerido={requerido}><textarea rows={3} {...props(id, ayuda, e)} required={requerido} {...r} /></Envoltura>;
 }
 
-export function Select({ label, ayuda, error, errorApi, requerido, opciones, vacio = 'Selecciona...', ...r }) {
+export function Select({ label, ayuda, error, errorApi, requerido, opciones = [], vacio = 'Selecciona...', buscable, ordenar, ...r }) {
   const id = useId();
+  const [busqueda, setBusqueda] = useState('');
   const e = error || errorCampo(errorApi, r.name);
+  const entidades = opciones.length > 0 && opciones.every((o) => /^\d+$/.test(String(o.valor)));
+  const permiteBuscar = buscable ?? (entidades && opciones.length > 8);
+  const lista = (ordenar ?? entidades) ? [...opciones].sort((a, b) => String(a.texto).localeCompare(String(b.texto), 'es', { numeric: true, sensitivity: 'base' }) || String(a.valor).localeCompare(String(b.valor), 'es', { numeric: true })) : opciones;
+  const visibles = permiteBuscar && busqueda.trim() ? lista.filter((o) => normalizar(o.texto).includes(normalizar(busqueda.trim()))) : lista;
+  const seleccion = lista.find((o) => String(o.valor) === String(r.value));
+  const fueraFiltro = seleccion && !visibles.some((o) => String(o.valor) === String(seleccion.valor));
   return (
     <Envoltura id={id} label={label} ayuda={ayuda} error={e} requerido={requerido}>
+      {permiteBuscar && <input type="search" aria-label={`Buscar en ${label}`} aria-controls={id} placeholder={`Buscar por nombre o código`} value={busqueda} onChange={(ev) => setBusqueda(ev.target.value)} disabled={r.disabled} />}
       <select {...props(id, ayuda, e)} required={requerido} {...r}>
         <option value="">{vacio}</option>
-        {opciones.map((o) => <option key={o.valor} value={o.valor}>{o.texto}</option>)}
+        {fueraFiltro && <optgroup label="Selección actual"><option value={seleccion.valor}>{seleccion.texto}</option></optgroup>}
+        {visibles.map((o) => <option key={o.valor} value={o.valor}>{o.texto}</option>)}
       </select>
+      {permiteBuscar && busqueda && <small role="status">{visibles.length} coincidencia(s).{fueraFiltro ? ' Se conserva la selección actual.' : ''}</small>}
     </Envoltura>
   );
 }

@@ -1,0 +1,15 @@
+.campo > input[type="search"] + select { margin-top: .45rem; }
+.lista-check.lista-dispositivos { display: grid; grid-template-columns: 1fr; max-height: 25rem; overflow-y: auto; gap: .5rem; padding: .75rem; }
+.lista-dispositivos .campo-check { position: relative; display: block; margin: 0; }
+.lista-dispositivos .campo-check input { position: absolute; left: .9rem; top: 1rem; z-index: 1; }
+.lista-dispositivos .campo-check label { display: grid; gap: .25rem; width: 100%; min-height: 64px; padding: .8rem .8rem .8rem 2.8rem; border: 1px solid var(--borde, #d6e5de); border-radius: 12px; cursor: pointer; overflow-wrap: anywhere; }
+.lista-dispositivos .campo-check:has(input:checked) label { background: #e5f5ed; border-color: #168363; }
+.lista-dispositivos .campo-check:focus-within label { outline: 2px solid #168363; outline-offset: 2px; }
+.lista-dispositivos .campo-check label span, .lista-dispositivos .campo-check label small { font-size: .85rem; }
+.capacidad-editor { min-width: 0; display: grid; gap: .5rem; }
+.capacidad-editor .acciones { justify-content: flex-start; }
+@container (max-width: 640px) {
+  .tabla-wrap td[data-label="Acciones"], .tabla-wrap td[data-label="Detalle"] { display: block; text-align: left; }
+  .tabla-wrap td[data-label="Acciones"]::before, .tabla-wrap td[data-label="Detalle"]::before { display: block; width: 100%; margin-bottom: .6rem; }
+  .tabla-wrap td[data-label="Detalle"] pre { text-align: left; }
+}

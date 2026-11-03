@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from sqlalchemy.exc import IntegrityError
+from pydantic import ValidationError
+from app.api.schemas import DispositivoIn
 
 from app.domain.errors import ConflictoError
 from app.security import Actor
@@ -9,6 +11,11 @@ from app.services.dispositivo_service import registrar_dispositivo
 
 
 class TestSerieDuplicada(unittest.TestCase):
+    def test_serie_supera_longitud_sql_se_rechaza_antes_de_insertar(self):
+        with self.assertRaises(ValidationError):
+            DispositivoIn(tipo_registro='INDIVIDUAL', numero_serie='X' * 61,
+                          id_categoria=1, condicion_declarada='ENCIENDE')
+
     def ejecutar_error_commit(self, constraint):
         sesion = MagicMock()
         sesion.commit.side_effect = IntegrityError('INSERT', {}, Exception(constraint))

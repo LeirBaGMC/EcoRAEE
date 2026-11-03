@@ -16,7 +16,7 @@ await build({
     export { default as Solicitudes } from './src/pages/Solicitudes.jsx';
     export { MovimientoNuevo } from './src/pages/Movimientos.jsx';
     export { Tratamientos } from './src/pages/Destino.jsx';
-    export { DispositivoNuevo } from './src/pages/Dispositivos.jsx';`, resolveDir: raiz },
+    export { DispositivoNuevo, DispositivoDetalle } from './src/pages/Dispositivos.jsx';`, resolveDir: raiz },
   bundle: true, format: 'esm', platform: 'node', jsx: 'automatic',
   external: ['react', 'react/jsx-runtime'],
   define: { 'import.meta.env.VITE_API_URL': '"http://localhost:8000"' },
@@ -159,6 +159,7 @@ for (const pantalla of ['Solicitudes', 'MovimientoNuevo', 'Tratamientos']) {
         data = { total: items.length, items: items.slice((p - 1) * 100, p * 100) };
       } else if (u.pathname === '/conexiones') data = [{ id_conexion: 1, activa: true, id_centro_origen: 1, id_centro_destino: 2, capacidad_por_periodo: 1000, unidad_capacidad: 'UND' }];
       else if (u.pathname === '/centros') data = [{ id_centro: 1, nombre: 'Origen' }, { id_centro: 2, nombre: 'Destino' }];
+      else if (u.pathname === '/tratamientos') data = { items: [], total: 0, pagina: 1, tamano: 20 };
       else if (u.pathname === '/solicitudes') data = { items: [], total: 0, pagina: 1, tamano: 20 };
       else throw new Error(`Petición inesperada ${url}`);
       return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
@@ -176,3 +177,25 @@ for (const pantalla of ['Solicitudes', 'MovimientoNuevo', 'Tratamientos']) {
     } finally { act(() => vista?.unmount()); app.sesion.borrar(); }
   });
 }
+
+test('detalle granel identifica cantidades y clasificación; no ofrece asignar si no está permitido', async (t) => {
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    const ruta = new URL(url).pathname;
+    let datos;
+    if (ruta === '/auth/me') datos = { roles: ['COORDINADOR_LOGISTICO'], id_organizacion: 1 };
+    else if (ruta.endsWith('/historial')) datos = [];
+    else if (ruta.endsWith('/cierre')) return new Response('{}', { status: 404 });
+    else datos = { id_dispositivo: 135, codigo_trazabilidad: 'DSP-GRANEL', tipo_registro: 'GRANEL', estado_actual: 'EVALUADO', nombre_categoria: 'CABLES', peso_kg: '2.5', cantidad_unidades: 10, nombre_clasificacion: 'RECICLABLE', permite_asignacion: false, diagnostico: 'Cables incompletos para reciclaje' };
+    return new Response(JSON.stringify(datos), { headers: { 'Content-Type': 'application/json' } });
+  });
+  let vista; app.sesion.guardar('prueba');
+  function Pantalla() { const { usuario } = app.useAuth(); return usuario ? React.createElement(app.DispositivoDetalle, { params: { id: '135' } }) : null; }
+  try {
+    await act(async () => { vista = create(React.createElement(app.AuthProvider, null, React.createElement(Pantalla))); });
+    const pantalla = JSON.stringify(vista.toJSON());
+    assert.match(pantalla, /Peso total \(kg\)|Cantidad de unidades/);
+    assert.match(pantalla, /CABLES/);
+    assert.match(pantalla, /Cables incompletos para reciclaje/);
+    assert.doesNotMatch(pantalla, /Asignar a beneficiario/);
+  } finally { act(() => vista?.unmount()); app.sesion.borrar(); }
+});

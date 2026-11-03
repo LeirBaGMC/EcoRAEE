@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query
 from ..security import Actor, get_current_actor
 from ..services import ciclo_service as svc
 from .schemas import (AsignacionesPagina, AsignacionIn, AsignacionOut, CierreDetalle, CierreIn, CierreOut, TratamientoFinIn,
-                      TratamientoIn, TratamientoOut)
+                      TratamientoIn, TratamientoOut, TratamientosPagina)
 
 router = APIRouter(tags=["tratamiento, asignacion y cierre"])
 
@@ -16,6 +16,12 @@ def iniciar_tratamiento(datos: TratamientoIn, actor: Actor = Depends(get_current
 @router.post("/tratamientos/{id_tratamiento}/finalizar", response_model=TratamientoOut)
 def finalizar_tratamiento(id_tratamiento: int, datos: TratamientoFinIn, actor: Actor = Depends(get_current_actor)):
     return svc.finalizar_tratamiento(actor, id_tratamiento, datos.resultado)
+
+
+@router.get("/tratamientos", response_model=TratamientosPagina)
+def listar_tratamientos(pagina: int = Query(1, ge=1), tamano: int = Query(20, ge=1, le=100),
+                        actor: Actor = Depends(get_current_actor)):
+    return svc.listar_tratamientos(actor, pagina, tamano)
 
 
 @router.get("/tratamientos/{id_tratamiento}", response_model=TratamientoOut)

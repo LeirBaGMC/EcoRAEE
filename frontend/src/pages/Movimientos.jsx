@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { Admin, Dispositivos, Movimientos as Api } from '../api/endpoints.js';
-import { traerTodo, useAccion, useAsync, useForm } from '../lib/hooks.js';
+import { normalizar, traerTodo, useAccion, useAsync, useForm } from '../lib/hooks.js';
 import { fecha, fechaHora, hoyISO, num, texto, uuid } from '../lib/format.js';
 import { R_, tiene } from '../lib/permisos.js';
-import { Alerta, Boton, Carga, Casilla, Datos, ErrorApi, Estado, Input, Paginacion, Pagina, Select, Seccion, Tabla } from '../components/ui.jsx';
+import { Alerta, Boton, Buscador, Carga, Casilla, Datos, ErrorApi, Estado, Input, Paginacion, Pagina, Select, Seccion, Tabla } from '../components/ui.jsx';
 import { ListaEvidencias, SubirEvidencia } from './Evidencias.jsx';
 
 const ESTADOS = ['PROGRAMADO', 'AUTORIZADO', 'EN_TRANSITO', 'CERRADO', 'ANULADO'];
@@ -25,9 +25,9 @@ export function Movimientos() {
             { titulo: 'Código', ver: (f) => <a href={`#/movimientos/${f.id_movimiento}`}>{f.codigo_movimiento}</a> },
             { titulo: 'Tipo', ver: (f) => texto(f.tipo_movimiento) },
             { titulo: 'Estado', ver: (f) => <Estado valor={f.estado_movimiento} /> },
-            { titulo: 'Conexión', ver: (f) => `#${f.id_conexion}` },
+            { titulo: 'Ruta', ver: (f) => f.nombre_centro_origen && f.nombre_centro_destino ? `${f.nombre_centro_origen} → ${f.nombre_centro_destino} (#${f.id_conexion})` : `Conexión #${f.id_conexion}` },
             { titulo: 'Despacho planificado', ver: (f) => fecha(f.fecha_despacho) },
-            { titulo: 'Cantidad', num: true, ver: (f) => (f.cantidad != null ? `${num(f.cantidad)} ${f.unidad || ''}` : '-') },
+            { titulo: 'Cantidad', num: true, ver: (f) => ((f.cantidad_total ?? f.cantidad) != null ? `${num(f.cantidad_total ?? f.cantidad)} ${f.unidad_capacidad || f.unidad || ''}` : '-') },
           ]} />
           <Paginacion pagina={d.pagina} tamano={d.tamano} total={d.total} onCambiar={setPagina} />
         </>)}</Carga>
@@ -44,12 +44,14 @@ export function MovimientoNuevo() {
   const f = useForm({ id_conexion: '', tipo_movimiento: 'TRANSFERENCIA', fecha_despacho: hoyISO() });
   const [elegidos, setElegidos] = useState({}); // id -> peso opcional
   const [hecho, setHecho] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
   const clave = useRef({ huella: '', key: '' });
   const acc = useAccion((b, k) => Api.programar(b, k));
 
   const alternar = (id) => setElegidos((x) => { const n = { ...x }; if (id in n) delete n[id]; else n[id] = ''; return n; });
   const enviar = async (e, con) => {
     e.preventDefault();
+    setHecho(null);
     const dispositivos = Object.entries(elegidos).map(([id, peso]) => ({ id_dispositivo: Number(id), ...(peso ? { peso_despachado_kg: peso } : {}) }))
       .sort((a, b) => a.id_dispositivo - b.id_dispositivo);
     const body = { id_conexion: Number(f.v.id_conexion), tipo_movimiento: f.v.tipo_movimiento, fecha_despacho: f.v.fecha_despacho, dispositivos };
@@ -72,34 +74,36 @@ export function MovimientoNuevo() {
       <Carga estado={base}>{(b) => {
         const con = b.con.find((c) => String(c.id_conexion) === String(f.v.id_conexion));
         const nombre = (id) => b.cen.find((c) => c.id_centro === id)?.nombre || `Centro ${id}`;
-        const enOrigen = con ? b.disp.filter((d) => d.id_centro === con.id_centro_origen) : [];
+        const enOrigen = con ? b.disp.filter((d) => d.id_centro === con.id_centro_origen).sort((a, c) => a.codigo_trazabilidad.localeCompare(c.codigo_trazabilidad, 'es')) : [];
+        const visibles = enOrigen.filter((d) => normalizar(`${d.codigo_trazabilidad} ${d.marca || ''} ${d.modelo || ''}`).includes(normalizar(busqueda.trim())));
+        const unidades = enOrigen.filter((d) => d.id_dispositivo in elegidos).reduce((n, d) => n + (d.tipo_registro === 'GRANEL' ? Number(d.cantidad_unidades || 0) : 1), 0);
         return (
           <form onSubmit={(e) => enviar(e, con)} noValidate>
             <Seccion titulo="Ruta y fecha">
               <div className="form-rejilla">
-                <Select label="Conexión (origen a destino)" requerido value={f.v.id_conexion} onChange={(e) => { f.set('id_conexion', e.target.value); setElegidos({}); }}
+                <Select label="Conexión (origen a destino)" requerido buscable value={f.v.id_conexion} onChange={(e) => { f.set('id_conexion', e.target.value); setElegidos({}); setBusqueda(''); }}
                   opciones={b.con.map((c) => ({ valor: c.id_conexion, texto: `${nombre(c.id_centro_origen)} a ${nombre(c.id_centro_destino)} - ${num(c.capacidad_por_periodo)} ${c.unidad_capacidad} por periodo` }))} errorApi={acc.error} name="id_conexion" />
                 <Select label="Tipo de movimiento" requerido vacio="Selecciona..." opciones={TIPOS} {...f.enlazar('tipo_movimiento')} errorApi={acc.error} />
                 <Input label="Fecha planificada de despacho" type="date" min={hoyISO()} requerido {...f.enlazar('fecha_despacho')} errorApi={acc.error} ayuda="La capacidad se mide por mes calendario de esta fecha (propuesta pendiente de validar)." />
               </div>
-              {con && <p className="nota">La capacidad de esta conexion se mide en {con.unidad_capacidad === 'KG' ? 'kilogramos (usa el peso de cada dispositivo)' : 'unidades (1 por dispositivo)'}.</p>}
+              {con && <p className="nota">La capacidad de esta conexión se mide en {con.unidad_capacidad === 'KG' ? 'kilogramos: se usa el peso despachado de cada registro.' : 'unidades físicas: un individual cuenta como 1 y un granel cuenta por su cantidad de unidades.'} {con.unidad_capacidad === 'UND' && Object.keys(elegidos).length > 0 ? `Selección: ${num(unidades)} UND. El servidor verifica la capacidad disponible del periodo.` : ''}</p>}
             </Seccion>
             <Seccion titulo={`Dispositivos en el centro de origen (${Object.keys(elegidos).length} elegido(s))`} ayuda="Solo se muestran equipos evaluados o reacondicionados que estan en el centro de origen.">
               {!con ? <p className="nota">Elige primero la conexión.</p> : enOrigen.length === 0 ? <Alerta tipo="aviso">No hay dispositivos movibles en {nombre(con.id_centro_origen)}.</Alerta> : (
-                <div className="lista-check">
-                  {enOrigen.map((d) => (
+                <><Buscador label="Buscar equipos del origen" placeholder="Código, marca o modelo" value={busqueda} onChange={(ev) => setBusqueda(ev.target.value)} /><div className="lista-check lista-dispositivos">
+                  {visibles.map((d) => (
                     <div key={d.id_dispositivo} className="acciones">
-                      <Casilla label={`${d.codigo_trazabilidad} - ${texto(d.estado_actual)}`} checked={d.id_dispositivo in elegidos} onChange={() => alternar(d.id_dispositivo)} />
+                      <Casilla label={<><strong>{d.codigo_trazabilidad}</strong><span>{[d.marca, d.modelo].filter(Boolean).join(' ') || texto(d.tipo_registro)} — {texto(d.estado_actual)}</span>{d.tipo_registro === 'GRANEL' && <small>{num(d.cantidad_unidades)} unidades · {num(d.peso_kg)} kg</small>}</>} checked={d.id_dispositivo in elegidos} onChange={() => alternar(d.id_dispositivo)} />
                       {con.unidad_capacidad === 'KG' && d.id_dispositivo in elegidos && (
-                        <input type="number" min="0" step="0.001" aria-label={`Peso a despachar de ${d.codigo_trazabilidad} en kg (opcional)`} placeholder="Peso kg (opcional)" value={elegidos[d.id_dispositivo]} onChange={(e) => setElegidos((x) => ({ ...x, [d.id_dispositivo]: e.target.value }))} />
+                        <Input label={`Peso a despachar de ${d.codigo_trazabilidad} en kg (opcional)`} type="number" min="0.001" step="0.001" placeholder="Peso kg (opcional)" value={elegidos[d.id_dispositivo]} onChange={(e) => setElegidos((x) => ({ ...x, [d.id_dispositivo]: e.target.value }))} />
                       )}
                     </div>
                   ))}
-                </div>
+                </div>{visibles.length === 0 && <p className="vacio">No hay equipos que coincidan con la búsqueda.</p>}</>
               )}
             </Seccion>
             <ErrorApi error={acc.error} ayuda={{ 409: 'Alguno de los dispositivos ya esta en otro movimiento activo, o la clave de reintento se uso con datos distintos. Actualiza y revisa.', 422: 'Una regla no se cumplio: capacidad del periodo, fecha pasada, centro de destino o clasificación.' }} />
-            <Boton type="submit" enviando={acc.enviando} disabled={!con || Object.keys(elegidos).length === 0 || !f.v.fecha_despacho}>Programar movimiento</Boton>
+            <Boton type="submit" enviando={acc.enviando} ayudaDeshabilitado="Elige una conexión, al menos un equipo y la fecha de despacho." disabled={!con || Object.keys(elegidos).length === 0 || !f.v.fecha_despacho}>Programar movimiento</Boton>
           </form>
         );
       }}</Carga>
@@ -138,14 +142,14 @@ export function MovimientoDetalle({ params }) {
         return (<>
           <Seccion titulo="Resumen">
             <Datos pares={[
-              ['Estado', <Estado key="e" valor={e} />], ['Tipo', texto(m.tipo_movimiento)], ['Origen (centro)', m.id_centro_origen], ['Destino (centro)', m.id_centro_destino],
-              ['Responsable (usuario)', m.id_responsable], ['Despacho planificado', fecha(m.fecha_despacho)], ['Recepción', fechaHora(m.fecha_recepcion)],
-              ['Cantidad', m.cantidad != null ? `${num(m.cantidad)} ${m.unidad || ''}` : '-'],
+              ['Estado', <Estado key="e" valor={e} />], ['Tipo', texto(m.tipo_movimiento)], ['Origen (centro)', `${m.nombre_centro_origen || 'Centro'} (#${m.id_centro_origen})`], ['Destino (centro)', `${m.nombre_centro_destino || 'Centro'} (#${m.id_centro_destino})`],
+              ['Responsable (usuario)', `${m.nombre_responsable || 'Usuario'} (#${m.id_responsable})`], ['Despacho planificado', fecha(m.fecha_despacho)], ['Recepción', fechaHora(m.fecha_recepcion)],
+              ['Cantidad', (m.cantidad_total ?? m.cantidad) != null ? `${num(m.cantidad_total ?? m.cantidad)} ${m.unidad_capacidad || m.unidad || ''}` : '-'],
             ]} />
           </Seccion>
           <Seccion titulo="Dispositivos">
             <Tabla titulo="Dispositivos del movimiento" clave="id_dispositivo" filas={m.dispositivos} columnas={[
-              { titulo: 'Dispositivo', ver: (d) => <a href={`#/dispositivos/${d.id_dispositivo}`}>#{d.id_dispositivo}</a> },
+              { titulo: 'Dispositivo', ver: (d) => <a href={`#/dispositivos/${d.id_dispositivo}`}>{d.codigo_trazabilidad || `#${d.id_dispositivo}`}</a> },
               { titulo: 'Peso despachado (kg)', num: true, ver: (d) => num(d.peso_despachado_kg) },
               { titulo: 'Conforme al recibir', ver: (d) => (e === 'CERRADO' ? (d.conforme === null ? '-' : d.conforme ? 'Si' : 'No') : (e === 'EN_TRANSITO' && esC ? <Casilla label="Conforme" checked={conformes[d.id_dispositivo] !== false} onChange={(ev) => setConformes((x) => ({ ...x, [d.id_dispositivo]: ev.target.checked }))} /> : 'Pendiente')) },
             ]} />
@@ -158,7 +162,7 @@ export function MovimientoDetalle({ params }) {
               {e === 'EN_TRANSITO' && esC && <Paso texto="Cerrar movimiento" onHacer={cerrar} />}
             </div>
             {['CERRADO', 'ANULADO'].includes(e) && <p className="nota">Este movimiento ya termino.</p>}
-            {e === 'EN_TRANSITO' && <Alerta tipo="info">Para cerrar hace falta la guia de traslado (abajo). El cierre mueve el inventario del origen al destino en una sola operación.</Alerta>}
+            {e === 'EN_TRANSITO' && <Alerta tipo="info">{esC ? 'Para cerrar hace falta una guía de traslado adjunta. Puedes consultarla en Evidencias del movimiento. El cierre mueve el inventario al destino en una sola operación.' : 'El coordinador logístico confirma la recepción y cierra este movimiento. Como operador puedes adjuntar la guía de traslado.'}</Alerta>}
           </Seccion>
           {tiene(usuario, R_.O, R_.T, R_.C) && ['AUTORIZADO', 'EN_TRANSITO'].includes(e) && (
             <Seccion titulo="Subir guia de traslado"><SubirEvidencia destino={{ id_movimiento: id }} tipos={['GUIA_TRASLADO']} alSubir={() => setVersion((x) => x + 1)} /></Seccion>
