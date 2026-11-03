@@ -77,3 +77,11 @@ La emulación de tamaño no sustituye un teléfono físico, teclado virtual o pr
 - La cuenta temporal auditor1 sigue disponible para comprobar las correcciones. Su retirada queda pendiente de dar por terminadas las auditorías; debe preservarse la trazabilidad de las acciones ya realizadas.
 
 Los servidores se verificaron accesibles al finalizar. La publicación del código conserva la cuenta temporal y sus instrucciones de preparación; excluye los registros de la base local, los documentos cargados y la configuración privada.
+
+## DELETE de lotes para completar CRUD (2026-11-03)
+
+- Añadido `DELETE /lotes/{id_lote}`: solo GENERADOR, lote propio REGISTRADO y sin solicitud. Borra lote/vínculos y conserva dispositivos e historial; las restricciones devuelven 403/404/409 según corresponda.
+- El borrado y la auditoría DELETE son atómicos. Si falla la auditoría, se revierten ambas eliminaciones. Comparte el bloqueo del lote con crear solicitud, sin migraciones ni permisos nuevos para adm1.
+- Trece regresiones nuevas sin BDD y cuatro integraciones con SQL Server y rollback: eliminación y reutilización del equipo, rechazo con solicitud, alcance por organización y reversión ante fallo de auditoría.
+- Verificación: 170 pruebas aprobadas y 30 subpruebas, al ejecutar `python -m pytest tests tests_integracion/test_eliminar_lote_rollback.py -q`. Los datos de las pruebas SQL se revierten; no se eliminó el lote de demostración del usuario.
+- Guion adaptado a instalaciones independientes y eliminación del lote creado en Swagger. SQL del video es de solo lectura y no requiere que las laptops compartan registros.

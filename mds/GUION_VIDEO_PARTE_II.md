@@ -23,7 +23,7 @@ No presentar estos tres equipos como un mismo registro compartido. Si una serie 
 5. Preparar los formularios de Katty y Katalina con Individual, LAPTOP, Enciende, marca PRUEBA VIDEO y modelo Demo local. Cada una usa su propia serie nueva. No pulsar Registrar hasta la grabación.
 6. Katalina localiza una conexión **de prueba** en su propia página Centros y conexiones. Anota su ID y su capacidad actual. Prepara una capacidad superior válida; por ejemplo, 10 si actualmente es 3. Si ya vale 10, elegir otro valor superior.
 7. En la laptop de Katalina, abrir consultas_video_parte_ii.sql en SSMS, comprobar la instancia y ajustar @Serie y @Conexion al caso local. Dejar también preparada la página de la conexión que va a editar.
-8. Si Gabriel va a demostrar la baja lógica, elegir antes un movimiento **de prueba que ya no se necesite**, PROGRAMADO o AUTORIZADO, de su propia instalación. Anotar su ID y preparar POST /movimientos/{id_movimiento}/anular. No anular movimientos reales ni usar un ID de otra laptop. Si no hay un caso preparado, omitir este paso y su frase del diálogo.
+8. Gabriel demostrará DELETE con el lote de prueba recién creado durante su intervención. No crear una solicitud para ese lote: solo se permite eliminarlo mientras esté REGISTRADO y sin solicitud. Conservar el ID del dispositivo para comprobar que el equipo sigue existiendo.
 
 ## Katty — presentación y frontend, aproximadamente 1:10
 
@@ -76,7 +76,8 @@ Mostrar **422** y el mensaje de número de serie obligatorio. Este intento no cr
 Ejecutar y mostrar **201**, id_lote y total_dispositivos = 1. Se crea el lote y su vínculo con el equipo existente; no se crea otro dispositivo. Anotar el ID del lote.
 
 5. Abrir GET /lotes/{id_lote}, introducir el ID recién recibido, ejecutar y mostrar **200** y el dispositivo asociado. Si se repite POST /lotes con ese mismo equipo, el error es 422, no 409.
-6. Solo con el caso de baja preparado: ejecutar POST /movimientos/{id_movimiento}/anular con su ID de prueba y comprobar **200** y estado_movimiento = ANULADO. No usar el dispositivo recién creado como id_movimiento: son entidades e identificadores distintos.
+6. Abrir DELETE /lotes/{id_lote} → Try it out. Introducir el ID del lote recién consultado y pulsar Execute, sin cuerpo JSON. Comprobar **200**, eliminado = true y dispositivos_liberados = 1.
+7. Volver a GET /lotes/{id_lote} y ejecutarlo con el mismo ID: ahora devuelve **404**. El dispositivo no se elimina; GET /dispositivos/{id_dispositivo} sigue devolviendo 200. Usar los IDs de su propio ensayo, no copiar números de otra laptop.
 
 ### Diálogo continuo
 
@@ -88,9 +89,7 @@ Ejecutar y mostrar **201**, id_lote y total_dispositivos = 1. Se crea el lote y 
 >
 > Después utilizo el identificador para crear un lote. El backend comprueba el dispositivo y guarda la relación en lote_dispositivo dentro de una transacción. Al consultar el lote, aparece el equipo asociado.
 
-**Solo si se ejecutó el paso 6, continuar sin cambiar de turno:**
-
-> Finalmente anulo este movimiento de prueba. Es una baja lógica: conserva el registro y su historial para mantener la trazabilidad.
+> Finalmente elimino el lote de prueba mediante DELETE. La consulta confirma que ya no existe. El equipo y su historial se conservan; la eliminación solo se permite antes de crear una solicitud y queda registrada en auditoría.
 
 ## Katalina — base de datos e integración, aproximadamente 1:40
 
@@ -118,9 +117,9 @@ Ejecutar y mostrar **201**, id_lote y total_dispositivos = 1. Se crea el lote y 
 ## Alcance y comprobación antes de entregar
 
 - La creación se demuestra en frontend y Swagger, la consulta en API y SQL, y la actualización desde la interfaz y su consulta SQL posterior.
-- La anulación opcional demuestra una baja lógica. No hay un endpoint DELETE para eliminar físicamente dispositivos o lotes; no presentar la anulación como un DELETE físico.
+- DELETE elimina realmente la agrupación de prueba y sus vínculos, conservando el dispositivo y su historial. Las bajas de movimientos y cuentas siguen siendo anulación y desactivación, respectivamente. No hay DELETE de dispositivos.
 - Los resultados 201/409/422 descritos son los esperados por el código revisado. Solo afirmar en el video los que se obtengan al ejecutar la demostración en cada laptop.
 - El SQL adjunto es de solo lectura. No recrear tablas ni volver a ejecutar el esquema completo durante el video.
-- Ensayar el recorrido entero hablando mientras se hacen los clics. Si falta tiempo, retirar la baja opcional y su frase, reducir el recorrido del menú y mostrar solo las cuadrículas necesarias. Mantener la integración de Katalina y la intervención de los tres integrantes.
+- Ensayar el recorrido entero hablando mientras se hacen los clics. Si falta tiempo, reducir el recorrido del menú y mostrar solo las cuadrículas necesarias. Mantener la creación/consulta/DELETE del lote, la integración de Katalina y la intervención de los tres integrantes. No repetir la consulta opcional del dispositivo si no hay tiempo.
 - No anunciar 4:40 como duración garantizada: comprobar que el MP4 final no supere 5:00, incluyendo cambios de integrante y transiciones.
 - Cada integrante adapta «mi aporte» al trabajo que realmente realizó. La instalación local y los datos de los otros equipos no se dan por verificados desde esta laptop.

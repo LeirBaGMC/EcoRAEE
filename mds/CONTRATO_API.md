@@ -34,7 +34,7 @@ La fuente completa de parámetros y respuestas continúa siendo OpenAPI en `/doc
 | Acceso | POST /auth/login | publico |
 | Dispositivos | POST /dispositivos; GET /dispositivos; GET /dispositivos/{id}; GET /dispositivos/{id}/historial | GENERADOR, OPERADOR_CENTRO (crear); lectura segun alcance |
 | Evaluacion | POST /dispositivos/{id}/evaluaciones | TECNICO_EVALUADOR (RN-02) |
-| Lotes y solicitudes | POST /lotes; GET /lotes/{id}; POST /solicitudes; GET /solicitudes | GENERADOR |
+| Lotes y solicitudes | POST /lotes; GET /lotes/{id}; DELETE /lotes/{id}; POST /solicitudes; GET /solicitudes | GENERADOR |
 | Recoleccion | POST /solicitudes/{id}/recoleccion; POST /solicitudes/{id}/recoleccion/ejecutar | COORDINADOR_LOGISTICO |
 | Recepcion | POST /recepciones | OPERADOR_CENTRO |
 | Movimientos | POST /movimientos; GET /movimientos; GET /movimientos/{id}; POST .../autorizar; .../anular; .../cerrar | COORDINADOR_LOGISTICO |
@@ -52,6 +52,17 @@ La fuente completa de parámetros y respuestas continúa siendo OpenAPI en `/doc
 | Salud | GET /health | publico |
 
 Los permisos finos estan en `app/domain/permisos.py` (PROPUESTO: validar con el grupo).
+
+## Eliminación de lotes sin solicitud (2026-11-03)
+
+`DELETE /lotes/{id_lote}` no recibe cuerpo. Exige `lote:eliminar` (GENERADOR) y pertenencia a la organización propietaria. Solo elimina lotes REGISTRADO sin solicitud: borra la agrupación y sus vínculos, conservando los dispositivos y su historial. El borrado y su auditoría DELETE se confirman en una sola transacción y comparten el bloqueo del lote con la creación de solicitudes.
+
+- 200: `{"id_lote":150,"eliminado":true,"dispositivos_liberados":1}`.
+- 403: rol sin permiso. ADMINISTRADOR por sí solo no obtiene este permiso; auditor1 lo tiene por GENERADOR.
+- 404: lote inexistente o de otra organización; la respuesta no revela cuál de las dos condiciones aplica.
+- 409: estado posterior a REGISTRADO o solicitud existente. No elimina procesos ya iniciados.
+
+Tras eliminar, GET del lote devuelve 404 y los dispositivos quedan disponibles para un nuevo lote. No es una eliminación de dispositivos. No requiere migración de esquema.
 
 ## Ejemplos sinteticos
 Exito - programar movimiento:
