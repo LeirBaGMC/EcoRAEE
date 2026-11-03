@@ -95,7 +95,7 @@ def ejecutar_recoleccion(actor: Actor, id_solicitud: int) -> dict:
 
 
 def _ve_todo(actor: Actor) -> bool:
-    return bool({"OPERADOR_CENTRO", "COORDINADOR_LOGISTICO"} & set(actor.roles))
+    return bool({"OPERADOR_CENTRO", "COORDINADOR_LOGISTICO", "ADMINISTRADOR"} & set(actor.roles))
 
 
 def obtener_lote(actor: Actor, id_lote: int) -> dict:

@@ -55,8 +55,10 @@ def confirmar_entrega(sesion, id_asignacion: int) -> None:
                    {"f": datetime.now(), "i": id_asignacion})
 
 
-def listar_asignaciones(sesion, id_org: int, como_beneficiaria: bool, offset: int, limite: int):
-    if como_beneficiaria:
+def listar_asignaciones(sesion, id_org: int, como_beneficiaria: bool, offset: int, limite: int, todos: bool = False):
+    if todos:
+        donde, join = "1=1", ""
+    elif como_beneficiaria:
         donde, join = "a.id_organizacion = :org", ""
     else:
         join = ("LEFT JOIN v_dispositivo_ubicacion_actual u ON u.id_dispositivo = d.id_dispositivo "

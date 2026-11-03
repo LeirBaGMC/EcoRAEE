@@ -22,8 +22,8 @@ def _dispositivo_en_mi_centro(s, actor: Actor, id_dispositivo: int) -> dict:
     return ubic
 
 
-def _dispositivo_visible(s, actor: Actor, id_dispositivo: int) -> dict:
-    d = repo_d.obtener_visible(s, id_dispositivo, actor.id_organizacion)
+def _dispositivo_visible(s, actor: Actor, id_dispositivo: int, consulta: bool = False) -> dict:
+    d = repo_d.obtener_visible(s, id_dispositivo, actor.id_organizacion, todos=consulta and "ADMINISTRADOR" in actor.roles)
     if d is None:
         raise NoEncontradoError("Dispositivo no encontrado")
     return d
@@ -71,7 +71,7 @@ def obtener_tratamiento(actor: Actor, id_tratamiento: int) -> dict:
         t = repo.obtener_tratamiento(s, id_tratamiento)
         if t is None:
             raise NoEncontradoError("Tratamiento no encontrado")
-        _dispositivo_visible(s, actor, t["id_dispositivo"])
+        _dispositivo_visible(s, actor, t["id_dispositivo"], consulta=True)
         return t
 
 
@@ -119,13 +119,13 @@ def listar_asignaciones(actor: Actor, pagina: int, tamano: int) -> dict:
         raise ReglaNegocioError("pagina >= 1 y tamano entre 1 y 100")
     como_benef = "ENTIDAD_BENEFICIARIA" in actor.roles and "COORDINADOR_LOGISTICO" not in actor.roles
     with transaccion() as s:
-        total, filas = repo.listar_asignaciones(s, actor.id_organizacion, como_benef, (pagina - 1) * tamano, tamano)
+        total, filas = repo.listar_asignaciones(s, actor.id_organizacion, como_benef, (pagina - 1) * tamano, tamano, todos="ADMINISTRADOR" in actor.roles)
     return {"items": [{**f, "entregada": f["fecha_entrega"] is not None} for f in filas], "total": total, "pagina": pagina, "tamano": tamano}
 
 
 def exigir_permiso_ver_asignacion(actor: Actor) -> None:
     from ..domain.errors import PermisoDenegadoError
-    if not ({"ENTIDAD_BENEFICIARIA", "COORDINADOR_LOGISTICO"} & set(actor.roles)):
+    if not ({"ENTIDAD_BENEFICIARIA", "COORDINADOR_LOGISTICO", "ADMINISTRADOR"} & set(actor.roles)):
         raise PermisoDenegadoError("No tienes permiso para: asignacion:ver")
 
 
@@ -163,7 +163,7 @@ def registrar_cierre(actor: Actor, id_dispositivo: int, id_tratamiento: Optional
 def consultar_cierre(actor: Actor, id_dispositivo: int) -> dict:
     exigir_permiso(actor.roles, "dispositivo:ver")
     with transaccion() as s:
-        _dispositivo_visible(s, actor, id_dispositivo)
+        _dispositivo_visible(s, actor, id_dispositivo, consulta=True)
         c = repo.cierre_de_dispositivo(s, id_dispositivo)
     if c is None:
         raise NoEncontradoError("El dispositivo aun no tiene cierre de trazabilidad")

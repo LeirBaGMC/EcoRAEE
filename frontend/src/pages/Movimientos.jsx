@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { Admin, Dispositivos, Movimientos as Api } from '../api/endpoints.js';
-import { useAccion, useAsync, useForm } from '../lib/hooks.js';
+import { traerTodo, useAccion, useAsync, useForm } from '../lib/hooks.js';
 import { fecha, fechaHora, hoyISO, num, texto, uuid } from '../lib/format.js';
 import { R_, tiene } from '../lib/permisos.js';
 import { Alerta, Boton, Carga, Casilla, Datos, ErrorApi, Estado, Input, Paginacion, Pagina, Select, Seccion, Tabla } from '../components/ui.jsx';
@@ -38,8 +38,8 @@ export function Movimientos() {
 
 export function MovimientoNuevo() {
   const base = useAsync(async () => {
-    const [con, cen, ev, re] = await Promise.all([Admin.conexiones(), Admin.centros(), Dispositivos.listar(1, 100, 'EVALUADO'), Dispositivos.listar(1, 100, 'REACONDICIONADO')]);
-    return { con: con.filter((c) => c.activa), cen, disp: [...ev.items, ...re.items] };
+    const [con, cen, ev, re] = await Promise.all([Admin.conexiones(), Admin.centros(), traerTodo((p, t) => Dispositivos.listar(p, t, 'EVALUADO')), traerTodo((p, t) => Dispositivos.listar(p, t, 'REACONDICIONADO'))]);
+    return { con: con.filter((c) => c.activa), cen, disp: [...ev, ...re] };
   }, []);
   const f = useForm({ id_conexion: '', tipo_movimiento: 'TRANSFERENCIA', fecha_despacho: hoyISO() });
   const [elegidos, setElegidos] = useState({}); // id -> peso opcional

@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { useAuth } from '../auth/AuthContext.jsx';
+import { R_, tiene } from '../lib/permisos.js';
 import { Admin, Escenarios as Api } from '../api/endpoints.js';
 import { useAccion, useAsync, useForm } from '../lib/hooks.js';
 import { fecha, fechaHora, num, texto } from '../lib/format.js';
@@ -6,11 +8,12 @@ import { Alerta, Boton, Carga, Casilla, Datos, ErrorApi, Estado, Input, Paginaci
 import Grafo from './Grafo.jsx';
 
 export function Escenarios() {
+  const { usuario } = useAuth();
   const [pagina, setPagina] = useState(1);
   const lista = useAsync(() => Api.listar(pagina, 20), [pagina]);
   return (
     <Pagina titulo="Análisis de red" ayuda="Escenarios para calcular cuanto puede mover la red en un periodo y que conexiones lo limitan. Es un análisis: no crea ni autoriza movimientos."
-      acciones={<a className="btn btn-pri" href="#/escenarios/nuevo">Nuevo escenario</a>}>
+      acciones={tiene(usuario, R_.C) && <a className="btn btn-pri" href="#/escenarios/nuevo">Nuevo escenario</a>}>
       <Seccion titulo="Escenarios">
         <Carga estado={lista} vacio="Todavia no hay escenarios.">{(d) => (<>
           <Tabla titulo="Escenarios" clave="id_escenario" filas={d.items} columnas={[
@@ -114,6 +117,8 @@ function Resultado({ esc, centros, r }) {
 }
 
 export function EscenarioDetalle({ params }) {
+  const { usuario } = useAuth();
+  const puedeOperar = tiene(usuario, R_.C);
   const id = params.id;
   const esc = useAsync(() => Api.obtener(id), [id]);
   const centros = useAsync(Admin.centros, []);
@@ -126,16 +131,16 @@ export function EscenarioDetalle({ params }) {
   return (
     <Pagina titulo={`Escenario ${esc.data?.codigo_escenario || id}`} acciones={<a className="btn btn-sec" href="#/escenarios">Volver</a>}>
       <Carga estado={esc}>{(e) => (<>
-        <Seccion titulo={e.nombre} acciones={e.estado_escenario !== 'ARCHIVADO' && (
+        <Seccion titulo={e.nombre} acciones={puedeOperar && e.estado_escenario !== 'ARCHIVADO' && (
           <Boton tipo="secundario" enviando={estado.enviando} onClick={() => estado.ejecutar(e.estado_escenario === 'VIGENTE' ? 'ARCHIVADO' : 'VIGENTE')}>{e.estado_escenario === 'VIGENTE' ? 'Archivar' : 'Marcar vigente'}</Boton>)}>
           <Datos pares={[['Estado', <Estado key="s" valor={e.estado_escenario} />], ['Unidad', e.unidad_flujo], ['Periodo', `${fecha(e.fecha_inicio_periodo)} a ${fecha(e.fecha_fin_periodo)}`], ['Centros', e.nodos.length], ['Conexiones', e.conexiones.length]]} />
           <ErrorApi error={estado.error} ayuda={{ 409: 'Un escenario archivado no cambia de estado.' }} />
         </Seccion>
         <Seccion titulo="Calcular flujo máximo y corte mínimo">
-          <div className="acciones">
+          {puedeOperar && <div className="acciones">
             <Select label="Algoritmo" value={algoritmo} onChange={(ev) => setAlgoritmo(ev.target.value)} vacio="Selecciona..." opciones={[{ valor: 'EDMONDS_KARP', texto: 'Edmonds-Karp' }, { valor: 'FORD_FULKERSON', texto: 'Ford-Fulkerson' }]} />
             <Boton enviando={calcular.enviando} onClick={() => calcular.ejecutar()}>Calcular</Boton>
-          </div>
+          </div>}
           <ErrorApi error={calcular.error || ver.error} />
           <Carga estado={centros}>{(cs) => (resultado ? <Resultado esc={e} centros={cs} r={resultado} /> : <p className="nota">Todavia no hay un resultado en pantalla. Calcula o abre una ejecucion anterior.</p>)}</Carga>
         </Seccion>

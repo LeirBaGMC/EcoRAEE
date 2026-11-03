@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
     setUsuario(null);
     setCargando(false);
     setAviso(mensaje || null);
-    window.location.hash = '/';
+    window.location.hash = mensaje ? '/login' : '/';
   }, []);
 
   useEffect(() => {

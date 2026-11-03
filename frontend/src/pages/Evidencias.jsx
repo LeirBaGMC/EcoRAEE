@@ -68,7 +68,7 @@ export function ListaEvidencias({ destino, propositoInicial = 'AUDITORIA', refre
         <Select label="Propósito de la consulta" value={proposito} onChange={(e) => setProposito(e.target.value)} vacio="Selecciona..." opciones={PROPOSITOS} />
         <Boton tipo="secundario" enviando={listar.enviando} onClick={() => listar.ejecutar()} data-refresco={refresco}>Consultar evidencias</Boton>
       </div>
-      <p className="nota">Cada consulta y descarga queda registrada con su propósito.</p>
+      <p className="nota">El propósito indica para qué necesitas consultar el documento y se valida junto con tu rol.</p>
       <ErrorApi error={listar.error || abrir.error} ayuda={{ 403: 'Tu rol o el propósito elegido no permiten ver evidencias.' }} />
       {filas && <Tabla titulo="Evidencias" clave="id_evidencia" filas={filas} vacio="No hay evidencias para este registro." columnas={[
         { titulo: 'Número', ver: (f) => `#${f.id_evidencia}` },
@@ -88,30 +88,32 @@ const DESTINOS = [
   { valor: 'evaluacion', texto: 'Evaluación técnica', campos: [['id_dispositivo_evaluacion', 'Número de dispositivo'], ['nro_evaluacion', 'Número de evaluación']] },
 ];
 
-export default function Evidencias({ query }) {
+export default function Evidencias({ query = {} }) {
   const { usuario } = useAuth();
   const f = useForm({ destino: query.destino || 'id_movimiento', a: query.id || '', b: '' });
   const d = DESTINOS.find((x) => x.valor === f.v.destino);
+  const campos = d?.campos || [];
   const destino = {};
-  if (f.v.a) destino[d.campos[0][0]] = f.v.a;
-  if (d.campos[1] && f.v.b) destino[d.campos[1][0]] = f.v.b;
-  const completo = Object.keys(destino).length === d.campos.length;
+  if (campos[0] && Number.isSafeInteger(Number(f.v.a)) && Number(f.v.a) > 0) destino[campos[0][0]] = f.v.a;
+  if (campos[1] && Number.isSafeInteger(Number(f.v.b)) && Number(f.v.b) > 0) destino[campos[1][0]] = f.v.b;
+  const completo = campos.length > 0 && Object.keys(destino).length === campos.length;
   const [version, setVersion] = useState(0);
   return (
     <Pagina titulo="Evidencias" ayuda="Cada evidencia respalda exactamente un registro. Primero elige cual.">
+      {tiene(usuario, R_.A) && <Alerta tipo="info">Como administrador puedes consultar y abrir documentos de cualquier organización. Para empezar, elige el tipo de registro e introduce su número interno; puedes obtenerlo del detalle del proceso o de su registro en Auditoría. El rol Administrador por sí solo no permite subir archivos.</Alerta>}
       <Seccion titulo="Registro a respaldar o consultar">
         <div className="form-rejilla">
           <Select label="Tipo de registro" requerido vacio="Selecciona..." opciones={DESTINOS.map((x) => ({ valor: x.valor, texto: x.texto }))} value={f.v.destino} onChange={(e) => f.setV({ destino: e.target.value, a: '', b: '' })} />
-          <Input label={d.campos[0][1]} type="number" min="1" value={f.v.a} onChange={(e) => f.set('a', e.target.value)} />
-          {d.campos[1] && <Input label={d.campos[1][1]} type="number" min="1" value={f.v.b} onChange={(e) => f.set('b', e.target.value)} />}
+          {campos[0] && <Input label={campos[0][1]} type="number" min="1" value={f.v.a} onChange={(e) => f.set('a', e.target.value)} />}
+          {campos[1] && <Input label={campos[1][1]} type="number" min="1" value={f.v.b} onChange={(e) => f.set('b', e.target.value)} />}
         </div>
       </Seccion>
       {!completo && <Alerta tipo="info">Completa los numeros para subir o consultar evidencias.</Alerta>}
       {completo && tiene(usuario, R_.O, R_.T, R_.C, R_.R) && (
-        <Seccion titulo="Subir evidencia"><SubirEvidencia destino={destino} alSubir={() => setVersion((x) => x + 1)} /></Seccion>
+        <Seccion titulo="Subir evidencia"><SubirEvidencia key={JSON.stringify(destino)} destino={destino} alSubir={() => setVersion((x) => x + 1)} /></Seccion>
       )}
       {completo && tiene(usuario, R_.T, R_.C, R_.A) && (
-        <Seccion titulo="Consultar evidencias"><ListaEvidencias key={version} destino={destino} refresco={version} /></Seccion>
+        <Seccion titulo="Consultar evidencias"><ListaEvidencias key={`${JSON.stringify(destino)}-${version}`} destino={destino} refresco={version} /></Seccion>
       )}
     </Pagina>
   );

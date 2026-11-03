@@ -53,7 +53,7 @@ export function Impacto() {
   return (
     <section className="eco-seccion" id="impacto" aria-labelledby="t-impacto">
       <div className="eco-envoltura">
-        <CabeceraSeccion id="t-impacto" titulo="Resultados de nuestra operación" sub="Indicadores del último año de gestión" />
+        <CabeceraSeccion id="t-impacto" titulo="Ejemplo de indicadores de impacto" sub="Datos ficticios de demostración. Estas cifras no representan resultados reales de EcoRAEE." />
         <div className="eco-rejilla">
           <Tarjeta>
             <div className="eco-indicadores">
@@ -61,12 +61,12 @@ export function Impacto() {
             </div>
           </Tarjeta>
           <Tarjeta col={8}>
-            <Titulo nivel={4}>Equipos recuperados por mes</Titulo>
-            <Barras3D datos={MESES} densas alto="18rem" descripcion="Equipos recuperados por mes, en aumento durante el año" />
+            <Titulo nivel={4}>Equipos recuperados por mes (ejemplo)</Titulo>
+            <Barras3D datos={MESES} densas alto="18rem" descripcion="Ejemplo con datos ficticios de equipos recuperados por mes" />
           </Tarjeta>
           <Tarjeta col={4}>
-            <Titulo nivel={4}>Destino de los equipos</Titulo>
-            <Dona3D segmentos={DESTINOS} centro={{ valor: '100 %', texto: 'verificado' }} alto="15rem" />
+            <Titulo nivel={4}>Destino de los equipos (ejemplo)</Titulo>
+            <Dona3D segmentos={DESTINOS} centro={{ valor: '100 %', texto: 'del ejemplo' }} alto="15rem" />
           </Tarjeta>
         </div>
       </div>

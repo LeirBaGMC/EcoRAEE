@@ -17,6 +17,22 @@ TIPOS_ACTOR = ("GENERADOR", "OPERADOR", "REACONDICIONADOR", "RECICLADOR", "BENEF
 TIPOS_CENTRO = ("RECOLECCION", "REACONDICIONAMIENTO", "RECICLAJE", "DISPOSICION", "SEDE_BENEFICIARIA")
 
 
+def consulta_global(actor: Actor, recurso: str, pagina: int, tamano: int) -> dict:
+    exigir_permiso(actor.roles, 'auditoria:ver')
+    from sqlalchemy import text
+    consultas = {
+        'recepciones': ('recepcion', 'id_recepcion', 'id_recepcion,fecha_hora,peso_recibido_kg,unidades_recibidas,conforme,id_solicitud,id_centro'),
+        'tratamientos': ('tratamiento', 'id_tratamiento', 'id_tratamiento,tipo_tratamiento,fecha_inicio,fecha_fin,resultado,id_dispositivo'),
+        'cierres': ('cierre_trazabilidad', 'id_cierre', 'id_cierre,fecha_confirmacion,id_dispositivo,id_tratamiento,id_asignacion,destino_final'),
+    }
+    tabla, clave, columnas = consultas[recurso]
+    offset = _paginar(pagina, tamano)
+    with transaccion() as s:
+        total = s.execute(text(f'SELECT COUNT(*) FROM {tabla}')).scalar()
+        filas = s.execute(text(f'SELECT {columnas} FROM {tabla} ORDER BY {clave} DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY'), {'off': offset, 'n': tamano}).mappings().all()
+    return {'items': [dict(f) for f in filas], 'total': total, 'pagina': pagina, 'tamano': tamano}
+
+
 def _paginar(pagina: int, tamano: int) -> int:
     if pagina < 1 or tamano < 1 or tamano > 100:
         raise ReglaNegocioError("pagina >= 1 y tamano entre 1 y 100")

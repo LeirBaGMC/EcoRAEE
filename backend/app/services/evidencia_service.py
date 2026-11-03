@@ -24,9 +24,11 @@ def _metadatos(e: dict) -> dict:
     return {k: e[k] for k in ("id_evidencia", "tipo_evidencia", "descripcion", "fecha_carga", *_CAMPOS)}
 
 
-def _comprobar_alcance(s, actor: Actor, objetivo: str, ids: dict) -> None:
+def _comprobar_alcance(s, actor: Actor, objetivo: str, ids: dict, *, consulta: bool = False) -> None:
     orgs = repo.organizaciones_del_objetivo(s, objetivo, ids)
-    if actor.id_organizacion not in orgs:
+    # El administrador puede consultar toda la red; el objetivo debe existir.
+    admin_lector = consulta and "ADMINISTRADOR" in actor.roles
+    if not orgs or (not admin_lector and actor.id_organizacion not in orgs):
         raise NoEncontradoError("Elemento no encontrado")      # no se distingue "no existe" de "no es tuyo"
 
 
@@ -75,7 +77,7 @@ def descargar(actor: Actor, id_evidencia: int, proposito: str):
         if e is None:
             raise NoEncontradoError("Evidencia no encontrada")
         objetivo, ids = _objetivo_de_fila(e)
-        _comprobar_alcance(s, actor, objetivo, ids)
+        _comprobar_alcance(s, actor, objetivo, ids, consulta=True)
     log.info("ACCESO_EVIDENCIA usuario=%s evidencia=%s proposito=%s", actor.id_usuario, id_evidencia, proposito)
     return obtener_almacenamiento().leer(e["uri_archivo"]), de.tipo_de_clave(e["uri_archivo"])
 
@@ -85,5 +87,5 @@ def listar(actor: Actor, proposito: str, ids: dict) -> list:
     ids = {k: ids.get(k) for k in _CAMPOS}
     objetivo = de.objetivo_de(*(ids[k] for k in _CAMPOS))
     with transaccion() as s:
-        _comprobar_alcance(s, actor, objetivo, ids)
+        _comprobar_alcance(s, actor, objetivo, ids, consulta=True)
         return [_metadatos(e) for e in repo.listar_por_objetivo(s, ids)]

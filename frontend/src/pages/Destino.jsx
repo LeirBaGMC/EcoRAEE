@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { Admin, Ciclo, Dispositivos } from '../api/endpoints.js';
-import { useAccion, useAsync, useForm } from '../lib/hooks.js';
+import { traerTodo, useAccion, useAsync, useForm } from '../lib/hooks.js';
 import { fecha, fechaHora, hoyISO, texto } from '../lib/format.js';
 import { R_, tiene } from '../lib/permisos.js';
 import { Alerta, Boton, Carga, Datos, ErrorApi, Estado, Input, Paginacion, Pagina, Select, Seccion, Tabla } from '../components/ui.jsx';
@@ -9,8 +9,8 @@ import { Alerta, Boton, Carga, Datos, ErrorApi, Estado, Input, Paginacion, Pagin
 const TRATAMIENTOS = [['REACONDICIONAMIENTO', 'Reacondicionamiento (equipos reutilizables o reparables)'], ['RECICLAJE', 'Reciclaje (reciclables o no recuperables)'], ['DISPOSICION_CONTROLADA', 'Disposición controlada (solo no recuperables)']].map(([valor, t]) => ({ valor, texto: t }));
 
 async function dispositivosEn(estados) {
-  const r = await Promise.all(estados.map((e) => Dispositivos.listar(1, 100, e)));
-  return r.flatMap((x) => x.items);
+  const r = await Promise.all(estados.map((e) => traerTodo((p, t) => Dispositivos.listar(p, t, e))));
+  return r.flat();
 }
 
 function Tratamiento({ t, alCambiar }) {

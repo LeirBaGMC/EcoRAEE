@@ -13,14 +13,14 @@ def listar_dispositivos(actor: Actor, pagina: int, tamano: int, estado=None) -> 
     if pagina < 1 or tamano < 1 or tamano > MAX_TAMANO:
         raise ReglaNegocioError(f"pagina >= 1 y tamano entre 1 y {MAX_TAMANO}")
     with transaccion() as s:
-        total, items = repo.listar_visibles(s, actor.id_organizacion, estado, (pagina - 1) * tamano, tamano)
+        total, items = repo.listar_visibles(s, actor.id_organizacion, estado, (pagina - 1) * tamano, tamano, todos="ADMINISTRADOR" in actor.roles)
     return {"items": items, "total": total, "pagina": pagina, "tamano": tamano}
 
 
 def obtener_dispositivo(actor: Actor, id_dispositivo: int) -> dict:
     exigir_permiso(actor.roles, "dispositivo:ver")
     with transaccion() as s:
-        d = repo.obtener_visible(s, id_dispositivo, actor.id_organizacion)
+        d = repo.obtener_visible(s, id_dispositivo, actor.id_organizacion, todos="ADMINISTRADOR" in actor.roles)
     if d is None:
         raise NoEncontradoError("Dispositivo no encontrado")
     return d
@@ -29,6 +29,6 @@ def obtener_dispositivo(actor: Actor, id_dispositivo: int) -> dict:
 def historial_dispositivo(actor: Actor, id_dispositivo: int) -> list:
     exigir_permiso(actor.roles, "dispositivo:ver")
     with transaccion() as s:
-        if repo.obtener_visible(s, id_dispositivo, actor.id_organizacion) is None:
+        if repo.obtener_visible(s, id_dispositivo, actor.id_organizacion, todos="ADMINISTRADOR" in actor.roles) is None:
             raise NoEncontradoError("Dispositivo no encontrado")
         return repo.historial(s, id_dispositivo)

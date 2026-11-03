@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from fastapi import APIRouter, Depends, Query
 
@@ -8,6 +8,12 @@ from .schemas import (ActivoIn, AuditoriaPagina, CentroIn, CentroOut, ConexionIn
                       OrganizacionIn, OrganizacionOut, RolesIn, UsuarioIn, UsuarioOut, UsuariosPagina)
 
 router = APIRouter(tags=["administracion"])
+
+
+@router.get('/consultas/{recurso}')
+def consulta_global(recurso: Literal['recepciones', 'tratamientos', 'cierres'], pagina: int = Query(1, ge=1),
+                    tamano: int = Query(20, ge=1, le=100), actor: Actor = Depends(get_current_actor)):
+    return svc.consulta_global(actor, recurso, pagina, tamano)
 
 
 @router.post("/usuarios", response_model=UsuarioOut, status_code=201)

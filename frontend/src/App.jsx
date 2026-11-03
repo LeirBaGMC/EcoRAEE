@@ -8,6 +8,7 @@ import Login, { Registro } from './pages/Login.jsx';
 import Inicio from './pages/Inicio.jsx';
 import Icono from './components/Icono.jsx';
 import MenuPerfil from './components/MenuPerfil.jsx';
+import ConsultaGlobal from './pages/ConsultaGlobal.jsx';
 import { Leaf, Menu } from 'lucide-react';
 import { DispositivoDetalle, DispositivoNuevo, Dispositivos } from './pages/Dispositivos.jsx';
 import Solicitudes from './pages/Solicitudes.jsx';
@@ -65,6 +66,10 @@ export default function App() {
   let contenido;
   if (!hallada) contenido = <Alerta tipo="aviso" titulo="Página no encontrada">Esa dirección no existe. Usa el menú.</Alerta>;
   else if (!puedeVer(usuario, hallada.base)) contenido = <Alerta tipo="aviso" titulo="Sin acceso">Tu rol no ve esta pantalla. Si la necesitas, pide a un administrador revisar tu rol.</Alerta>;
+  else if (usuario.roles.includes('ADMINISTRADOR') && ['/recepciones', '/tratamientos', '/cierres'].includes(path)) {
+    const C = hallada.C;
+    contenido = <><C params={hallada.params} query={query} /><ConsultaGlobal key={path} recurso={path.slice(1)} /></>;
+  }
   else { const C = hallada.C; contenido = <C params={hallada.params} query={query} />; }
 
   return (

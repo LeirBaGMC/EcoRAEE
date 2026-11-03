@@ -46,25 +46,25 @@ def ubicacion_actual(sesion, id_dispositivo: int):
     return dict(r) if r else None
 
 
-_VISIBLE = ("(d.id_organizacion = :org OR c.id_organizacion = :org)")
+_VISIBLE = ("(:todos = 1 OR d.id_organizacion = :org OR c.id_organizacion = :org)")
 _FROM = ("FROM dispositivo d "
          "LEFT JOIN v_dispositivo_estado_actual e ON e.id_dispositivo = d.id_dispositivo "
          "LEFT JOIN v_dispositivo_ubicacion_actual u ON u.id_dispositivo = d.id_dispositivo "
          "LEFT JOIN centro c ON c.id_centro = u.id_centro ")
 
 
-def obtener_visible(sesion, id_dispositivo: int, id_org: int):
+def obtener_visible(sesion, id_dispositivo: int, id_org: int, todos: bool = False):
     """Devuelve el dispositivo solo si es de la organizacion del usuario o esta en un centro de ella."""
     r = sesion.execute(text(
         "SELECT d.id_dispositivo, d.codigo_trazabilidad, d.tipo_registro, d.marca, d.modelo, d.condicion_declarada, "
         "d.fecha_registro, e.estado_actual, u.id_centro, u.nombre_centro " + _FROM +
-        f"WHERE d.id_dispositivo = :id AND {_VISIBLE}"), {"id": id_dispositivo, "org": id_org}).mappings().first()
+        f"WHERE d.id_dispositivo = :id AND {_VISIBLE}"), {"id": id_dispositivo, "org": id_org, "todos": int(todos)}).mappings().first()
     return dict(r) if r else None
 
 
-def listar_visibles(sesion, id_org: int, estado, offset: int, limite: int):
+def listar_visibles(sesion, id_org: int, estado, offset: int, limite: int, todos: bool = False):
     filtro = " AND e.estado_actual = :estado" if estado else ""
-    params = {"org": id_org, "estado": estado, "off": offset, "n": limite}
+    params = {"org": id_org, "estado": estado, "off": offset, "n": limite, "todos": int(todos)}
     total = sesion.execute(text(f"SELECT COUNT(*) {_FROM} WHERE {_VISIBLE}{filtro}"), params).scalar()
     filas = sesion.execute(text(
         "SELECT d.id_dispositivo, d.codigo_trazabilidad, d.tipo_registro, d.marca, d.modelo, d.condicion_declarada, "

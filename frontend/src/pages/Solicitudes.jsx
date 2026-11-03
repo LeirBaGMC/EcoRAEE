@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { Dispositivos, Lotes } from '../api/endpoints.js';
-import { useAccion, useAsync, useForm } from '../lib/hooks.js';
+import { traerTodo, useAccion, useAsync, useForm } from '../lib/hooks.js';
 import { fechaHora, hoyISO, texto } from '../lib/format.js';
 import { R_, tiene } from '../lib/permisos.js';
 import { Alerta, Boton, Carga, Casilla, ErrorApi, Estado, Input, Paginacion, Pagina, Select, Seccion, Tabla } from '../components/ui.jsx';
 
 function NuevaSolicitud({ alCrear }) {
-  const disp = useAsync(() => Dispositivos.listar(1, 100, 'REGISTRADO'), []);
+  const disp = useAsync(async () => ({ items: await traerTodo((p, t) => Dispositivos.listar(p, t, 'REGISTRADO')) }), []);
   const [elegidos, setElegidos] = useState([]);
   const [lote, setLote] = useState(null); // el lote se crea una sola vez; si la solicitud falla, se reintenta solo la solicitud
   const f = useForm({ modalidad: 'RECOLECCION', zona_referencial: '' });

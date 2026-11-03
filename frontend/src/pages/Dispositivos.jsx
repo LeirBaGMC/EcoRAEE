@@ -50,6 +50,7 @@ export function DispositivoNuevo() {
   const granel = f.v.tipo_registro === 'GRANEL';
   const enviar = async (e) => {
     e.preventDefault();
+    setCreado(null);
     const b = { tipo_registro: f.v.tipo_registro, id_categoria: Number(f.v.id_categoria), condicion_declarada: f.v.condicion_declarada };
     if (granel) { b.peso_kg = f.v.peso_kg; b.cantidad_unidades = Number(f.v.cantidad_unidades); }
     else { b.numero_serie = f.v.numero_serie.trim(); if (f.v.marca) b.marca = f.v.marca; if (f.v.modelo) b.modelo = f.v.modelo; }
@@ -80,7 +81,7 @@ export function DispositivoNuevo() {
                 <Input label="Cantidad de unidades" type="number" step="1" min="1" requerido {...f.enlazar('cantidad_unidades')} errorApi={acc.error} />
               </>}
             </div>
-            <ErrorApi error={acc.error} ayuda={{ 409: 'Ese número de serie ya existe.' }} />
+            <ErrorApi error={acc.error} ayuda={{ 409: 'Revisa el dispositivo existente o usa la serie de otro equipo.' }} />
             <Boton type="submit" enviando={acc.enviando} disabled={!f.v.id_categoria}>Registrar</Boton>
           </form>
         )}</Carga>

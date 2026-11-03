@@ -133,12 +133,12 @@ def estado_antes_de_transito(sesion, id_dispositivo: int):
         "ORDER BY nro_cambio DESC"), {"d": id_dispositivo}).scalar()
 
 
-def listar_visibles(sesion, id_org: int, estado, offset: int, limite: int):
+def listar_visibles(sesion, id_org: int, estado, offset: int, limite: int, todos: bool = False):
     filtro = " AND m.estado_movimiento = :estado" if estado else ""
     base = ("FROM movimiento m JOIN conexion_logistica c ON c.id_conexion = m.id_conexion "
             "JOIN centro co ON co.id_centro = c.id_centro_origen JOIN centro cd ON cd.id_centro = c.id_centro_destino "
-            f"WHERE (co.id_organizacion = :org OR cd.id_organizacion = :org){filtro}")
-    p = {"org": id_org, "estado": estado, "off": offset, "n": limite}
+            f"WHERE (:todos = 1 OR co.id_organizacion = :org OR cd.id_organizacion = :org){filtro}")
+    p = {"org": id_org, "estado": estado, "off": offset, "n": limite, "todos": int(todos)}
     total = sesion.execute(text(f"SELECT COUNT(*) {base}"), p).scalar()
     filas = sesion.execute(text(_BASE + base + " ORDER BY m.id_movimiento DESC OFFSET :off ROWS FETCH NEXT :n ROWS ONLY"), p).mappings().all()
     return total, [dict(f) for f in filas]

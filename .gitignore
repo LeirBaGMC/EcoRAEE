@@ -29,3 +29,5 @@ Thumbs.db
 .vscode/
 *.bak
 *.zip
+.demo-front*.json
+.datos-front.json

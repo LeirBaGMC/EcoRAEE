@@ -23,10 +23,10 @@ from ..security import Actor
 from . import estado_service
 
 
-def _movimiento_visible(s, id_mov: int, actor: Actor, solo_origen: bool, bloquear: bool = False) -> dict:
+def _movimiento_visible(s, id_mov: int, actor: Actor, solo_origen: bool, bloquear: bool = False, consulta: bool = False) -> dict:
     m = repo.obtener(s, id_mov, bloquear=bloquear)
     orgs = {m["org_origen"]} if (m and solo_origen) else ({m["org_origen"], m["org_destino"]} if m else set())
-    if m is None or actor.id_organizacion not in orgs:
+    if m is None or (actor.id_organizacion not in orgs and not (consulta and "ADMINISTRADOR" in actor.roles)):
         raise NoEncontradoError("Movimiento no encontrado")
     return m
 
@@ -193,7 +193,7 @@ def cerrar(actor: Actor, id_mov: int, conformes: Optional[dict] = None) -> dict:
 def obtener(actor: Actor, id_mov: int) -> dict:
     exigir_permiso(actor.roles, "movimiento:ver")
     with transaccion() as s:
-        m = _movimiento_visible(s, id_mov, actor, solo_origen=False)
+        m = _movimiento_visible(s, id_mov, actor, solo_origen=False, consulta=True)
         res = _resumen(m)
         res.update({"id_centro_origen": m["id_centro_origen"], "id_centro_destino": m["id_centro_destino"],
                     "fecha_recepcion": m["fecha_recepcion"], "id_responsable": m["id_usuario"],
@@ -206,5 +206,5 @@ def listar(actor: Actor, pagina: int, tamano: int, estado: Optional[str]) -> dic
     if pagina < 1 or tamano < 1 or tamano > 100:
         raise ReglaNegocioError("pagina >= 1 y tamano entre 1 y 100")
     with transaccion() as s:
-        total, filas = repo.listar_visibles(s, actor.id_organizacion, estado, (pagina - 1) * tamano, tamano)
+        total, filas = repo.listar_visibles(s, actor.id_organizacion, estado, (pagina - 1) * tamano, tamano, todos="ADMINISTRADOR" in actor.roles)
     return {"items": [_resumen(f) for f in filas], "total": total, "pagina": pagina, "tamano": tamano}
