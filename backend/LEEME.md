@@ -69,3 +69,20 @@ Otros archivos: ../mds/CONTRATO_API.md (guía de endpoints para el frontend) y .
 ## 7. Pruebas
   Sin base de datos:      python -m unittest discover -s tests -t .
   Contra tu SQL Server:   python -m pytest tests_integracion -v     (recorre todo el flujo y los errores)
+
+## 8. Preparacion para AWS
+
+En EC2 ejecuta Uvicorn sin `--reload` y configura las variables mediante el servicio del sistema,
+Secrets Manager o un archivo de entorno protegido. No subas `.env` al repositorio.
+
+- `ECORAEE_STORAGE=local` conserva el comportamiento de desarrollo.
+- `ECORAEE_STORAGE=s3` activa S3 y requiere `ECORAEE_S3_BUCKET`; la instancia debe tener un rol IAM
+  con permisos sobre ese bucket. No se configuran claves AWS en el codigo.
+- `AWS_REGION` indica la region del bucket.
+- `ECORAEE_S3_KMS_KEY_ID` es opcional; si se define, las evidencias se cifran con esa clave KMS.
+- `ECORAEE_DB_POOL_SIZE`, `ECORAEE_DB_MAX_OVERFLOW`, `ECORAEE_DB_POOL_TIMEOUT` y
+  `ECORAEE_DB_POOL_RECYCLE` ajustan el pool para RDS.
+
+El balanceador debe usar `GET /health/live` para comprobar que el proceso esta levantado.
+`GET /health/ready` comprueba que la aplicacion puede conectarse a SQL Server y devuelve 503
+si la base no esta disponible.

@@ -3,6 +3,7 @@ Las claves se validan siempre (sin '..', sin rutas absolutas). Nada se sirve de 
 import os
 from pathlib import Path
 
+from ..config import load_settings
 from ..domain.evidencia import clave_segura
 
 
@@ -42,16 +43,27 @@ class AlmacenamientoS3:
     """ESCRITO, NO VERIFICADO: requiere boto3, un bucket privado y credenciales por rol IAM (sin claves en el codigo).
     No se usa mientras ECORAEE_STORAGE sea 'local'. Se activa en la fase Cloud con autorizacion."""
 
-    def __init__(self, bucket: str):
+    def __init__(self, bucket: str, region: str = "", kms_key_id: str = ""):
         import boto3  # import tardio: no es necesario para trabajar en local
         self.bucket = bucket
-        self.cliente = boto3.client("s3")
+        self.kms_key_id = kms_key_id
+        kwargs = {"region_name": region} if region else {}
+        self.cliente = boto3.client("s3", **kwargs)
 
     def guardar(self, clave: str, contenido: bytes, content_type: str) -> None:
         if not clave_segura(clave):
             raise ClaveInvalida("Clave de objeto no valida")
-        self.cliente.put_object(Bucket=self.bucket, Key=clave, Body=contenido, ContentType=content_type,
-                                ServerSideEncryption="AES256")
+        params = {
+            "Bucket": self.bucket,
+            "Key": clave,
+            "Body": contenido,
+            "ContentType": content_type,
+        }
+        if self.kms_key_id:
+            params.update(ServerSideEncryption="aws:kms", SSEKMSKeyId=self.kms_key_id)
+        else:
+            params["ServerSideEncryption"] = "AES256"
+        self.cliente.put_object(**params)
 
     def leer(self, clave: str) -> bytes:
         if not clave_segura(clave):
@@ -70,9 +82,16 @@ _instancia = None
 def obtener_almacenamiento():
     global _instancia
     if _instancia is None:
-        modo = os.environ.get("ECORAEE_STORAGE", "local")
-        if modo == "s3":
-            _instancia = AlmacenamientoS3(os.environ["ECORAEE_S3_BUCKET"])
+        s = load_settings()
+        if s.storage_mode == "s3":
+            _instancia = AlmacenamientoS3(s.s3_bucket, s.s3_region, s.s3_kms_key_id)
         else:
-            _instancia = AlmacenamientoLocal(os.environ.get("ECORAEE_EVIDENCE_DIR", "almacen_evidencias"))
+            _instancia = AlmacenamientoLocal(s.evidence_dir)
     return _instancia
+
+
+def comprobar_almacenamiento() -> None:
+    """Comprueba solo la configuracion y credenciales, sin crear objetos."""
+    almacen = obtener_almacenamiento()
+    if isinstance(almacen, AlmacenamientoS3):
+        almacen.cliente.head_bucket(Bucket=almacen.bucket)

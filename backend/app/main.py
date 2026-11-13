@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .config import load_settings
+from .db import comprobar_conexion
 from .api import admin, auth, ciclo, dispositivos, evidencias, flujo, lotes, movimientos, recepciones, seguimiento
 from .domain.errors import ConflictoError, NoEncontradoError, PermisoDenegadoError, ReglaNegocioError
 
@@ -29,6 +30,20 @@ async def regla_handler(_: Request, exc: ReglaNegocioError):
 @app.get("/health")
 def health():
     return {"estado": "ok"}
+
+
+@app.get("/health/live")
+def health_live():
+    return {"estado": "ok"}
+
+
+@app.get("/health/ready")
+def health_ready():
+    try:
+        comprobar_conexion()
+    except Exception:
+        return JSONResponse(status_code=503, content={"estado": "no_disponible", "dependencia": "base_de_datos"})
+    return {"estado": "listo"}
 
 
 app.include_router(auth.router)
