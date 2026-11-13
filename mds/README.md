@@ -56,6 +56,12 @@ npm run dev
 
 Abrir http://localhost:5173. `VITE_API_URL` debe apuntar al backend accesible desde el navegador. `localhost` siempre se refiere al equipo de quien abre la aplicación: la compañera debe ejecutar su backend local o configurar una API compartida.
 
+En AWS, `VITE_API_URL` debe apuntar a la URL HTTPS pública del backend y
+`ECORAEE_CORS_ORIGINS` debe contener el dominio real de CloudFront o del frontend.
+El backend expone `GET /health/live` para comprobar el proceso y `GET /health/ready`
+para comprobar la disponibilidad de SQL Server; el balanceador debe usar el segundo
+como health check de dependencias.
+
 Para compilar:
 
 ```powershell
@@ -89,6 +95,11 @@ La integración carga `.env`, utiliza SQL Server real y agrega datos de prueba. 
 Verificaciones anteriores: 126 pruebas unitarias y 13 de integración aprobadas tras las correcciones de movimientos; posteriormente pasó una prueba adicional de `/auth/me`. La compilación del frontend también pasó. Esto no implica una revisión visual completa ni una validación de S3.
 
 Estado de auditoría actualizado: 40 pruebas del frontend y 155 del backend aprobadas, compilación correcta y revisión en navegador móvil/escritorio. Los pendientes y sus límites están en `mds/CORRECCIONES_IMPLEMENTADAS.md`. S3/nube no forman parte de esta entrega local; también quedan pruebas en teléfono físico y revisión de dependencias de desarrollo. No aplicar actualizaciones mayores sin comprobar la compilación.
+
+La configuración preparada para cloud incluye pool configurable para RDS, validación
+del modo de almacenamiento, cifrado SSE-S3/SSE-KMS para evidencias S3 y health checks
+de disponibilidad. Todavía deben verificarse los permisos IAM, el bucket y la
+conexión real desde AWS.
 
 ## Qué no se comparte
 
